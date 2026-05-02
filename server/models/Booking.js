@@ -1,9 +1,9 @@
 // Booking Model - Handles car rental bookings and status tracking
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const bookingSchema = new mongoose.Schema(
   {
-    // Reference to Customer
+    // ... same as before
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -74,7 +74,7 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['Credit Card', 'Debit Card', 'UPI', 'Net Banking', 'Cash on Delivery', 'Digital Wallet'],
+      enum: ['Credit Card', 'Debit Card', 'UPI', 'Net Banking', 'Cash on Delivery', 'Digital Wallet','Zaad'],
       required: [true, 'Payment method is required'],
     },
     // Special Requirements/Notes
@@ -137,4 +137,5 @@ bookingSchema.virtual('totalCost').get(function () {
 // Ensure virtuals are included when converting to JSON
 bookingSchema.set('toJSON', { virtuals: true });
 
-module.exports = mongoose.model('Booking', bookingSchema);
+const Booking = mongoose.model('Booking', bookingSchema);
+export default Booking;

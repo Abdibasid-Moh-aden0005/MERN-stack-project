@@ -1,17 +1,18 @@
 // Booking Controller - Handles booking operations
-const Booking = require('../models/Booking');
-const Car = require('../models/Car');
-const {
+import Booking from '../models/Booking.js';
+import Car from '../models/Car.js';
+import User from '../models/User.js';
+import {
   calculateDays,
   calculateTotalRent,
   checkCarAvailability,
   validateBookingDates,
   generateBookingReference,
   calculateRefund,
-} = require('../utils/bookingUtils');
+} from '../utils/bookingUtils.js';
 
 // Create new booking
-const createBooking = async (req, res) => {
+export const createBooking = async (req, res) => {
   try {
     const {
       carId,
@@ -82,10 +83,10 @@ const createBooking = async (req, res) => {
       numberOfDays,
       rentPerDay: car.rentPerDay,
       totalRent,
-      insuranceSelected,
+      insuranceSelected: insuranceSelected || false,
       insuranceCost,
       specialRequirements: specialRequirements ? specialRequirements.trim() : '',
-      paymentMethod: paymentMethod || 'Credit Card',
+      paymentMethod: paymentMethod || 'Zaad',
       status: 'Pending',
       paymentStatus: 'Pending',
     });
@@ -113,7 +114,7 @@ const createBooking = async (req, res) => {
 };
 
 // Get all bookings for current user
-const getMyBookings = async (req, res) => {
+export const getMyBookings = async (req, res) => {
   try {
     const userId = req.userId;
     const { status, page = 1, limit = 10 } = req.query;
@@ -156,7 +157,7 @@ const getMyBookings = async (req, res) => {
 };
 
 // Get booking details
-const getBookingDetails = async (req, res) => {
+export const getBookingDetails = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const userId = req.userId;
@@ -173,7 +174,8 @@ const getBookingDetails = async (req, res) => {
     }
 
     // Check if user is the booking owner or admin
-    if (booking.customerId._id.toString() !== userId.toString() && req.user.role !== 'admin') {
+    const user = await User.findById(userId);
+    if (booking.customerId._id.toString() !== userId.toString() && user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Access denied',
@@ -196,7 +198,7 @@ const getBookingDetails = async (req, res) => {
 };
 
 // Cancel booking
-const cancelBooking = async (req, res) => {
+export const cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { cancellationReason } = req.body;
@@ -259,7 +261,7 @@ const cancelBooking = async (req, res) => {
 };
 
 // Check car availability for given dates
-const checkAvailability = async (req, res) => {
+export const checkAvailability = async (req, res) => {
   try {
     const { carId, pickupDate, dropoffDate } = req.query;
 
@@ -287,7 +289,7 @@ const checkAvailability = async (req, res) => {
   }
 };
 
-module.exports = {
+export default {
   createBooking,
   getMyBookings,
   getBookingDetails,

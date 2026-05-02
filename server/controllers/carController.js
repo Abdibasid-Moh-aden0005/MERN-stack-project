@@ -1,10 +1,14 @@
 // Car Controller - Handles car management operations
-const Car = require('../models/Car');
-const path = require('path');
-const fs = require('fs');
+import Car from '../models/Car.js';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Add new car (Admin only)
-const addCar = async (req, res) => {
+export const addCar = async (req, res) => {
   try {
     const { name, brand, model, year, color, fuelType, transmission, seatingCapacity, mileage, rentPerDay, features, description } = req.body;
 
@@ -15,7 +19,7 @@ const addCar = async (req, res) => {
         message: 'Missing required fields',
       });
     }
-
+    const url = "http://localhost:5000"
     // Get image paths from uploaded files
     const images = req.files ? req.files.map(file => `/uploads/cars/${file.filename}`) : [];
 
@@ -57,7 +61,7 @@ const addCar = async (req, res) => {
 };
 
 // Get all cars with filters
-const getAllCars = async (req, res) => {
+export const getAllCars = async (req, res) => {
   try {
     const { brand, fuelType, seatingCapacity, minPrice, maxPrice, search } = req.query;
 
@@ -121,7 +125,7 @@ const getAllCars = async (req, res) => {
 };
 
 // Get car details by ID
-const getCarById = async (req, res) => {
+export const getCarById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -150,7 +154,7 @@ const getCarById = async (req, res) => {
 };
 
 // Update car details (Admin only)
-const updateCar = async (req, res) => {
+export const updateCar = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, brand, model, year, color, fuelType, transmission, seatingCapacity, mileage, rentPerDay, features, description, isAvailable } = req.body;
@@ -180,6 +184,7 @@ const updateCar = async (req, res) => {
     if (features) car.features = JSON.parse(features);
     if (isAvailable !== undefined) car.isAvailable = isAvailable;
 
+     const url = "http://localhost:5000"
     // Handle new images if uploaded
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map(file => `/uploads/cars/${file.filename}`);
@@ -189,12 +194,12 @@ const updateCar = async (req, res) => {
     car.updatedAt = Date.now();
 
     // Save updated car
-    await car.save();
+    const newCar = await car.save();
 
     res.status(200).json({
       success: true,
       message: 'Car updated successfully',
-      car,
+      car:newCar,
     });
   } catch (error) {
     console.error('Update car error:', error);
@@ -207,7 +212,7 @@ const updateCar = async (req, res) => {
 };
 
 // Delete car (Admin only)
-const deleteCar = async (req, res) => {
+export const deleteCar = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -245,7 +250,7 @@ const deleteCar = async (req, res) => {
 };
 
 // Delete specific image from car
-const deleteCarImage = async (req, res) => {
+export const deleteCarImage = async (req, res) => {
   try {
     const { id } = req.params;
     const { imageUrl } = req.body;
@@ -285,7 +290,7 @@ const deleteCarImage = async (req, res) => {
   }
 };
 
-module.exports = {
+export default {
   addCar,
   getAllCars,
   getCarById,

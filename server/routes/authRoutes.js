@@ -1,9 +1,10 @@
-// Authentication Routes - API endpoints for auth operations
-const express = require('express');
+// Auth Routes - User authentication and profile management
+import express from 'express';
+import { register, login, getProfile, updateProfile, changePassword } from '../controllers/authController.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
+import { validateUserRegistration, validateUserLogin } from '../middleware/validationMiddleware.js';
+
 const router = express.Router();
-const { register, login, getProfile, updateProfile, changePassword } = require('../controllers/authController');
-const { authMiddleware } = require('../middleware/authMiddleware');
-const { validateUserRegistration, validateUserLogin } = require('../middleware/validationMiddleware');
 
 // Public Routes
 // POST /api/auth/register - Register a new user
@@ -22,4 +23,4 @@ router.put('/profile', authMiddleware, updateProfile);
 // PUT /api/auth/change-password - Change user password
 router.put('/change-password', authMiddleware, changePassword);
 
-module.exports = router;
+export default router;

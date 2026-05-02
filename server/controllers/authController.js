@@ -1,16 +1,14 @@
 // Authentication Controller - Handles user registration, login, and logout
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 // Generate JWT Token
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d',
-  });
+  return jwt.sign({ userId }, process.env.JWT_SECRET);
 };
 
 // User Registration Controller
-const register = async (req, res) => {
+export const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, phone, address, city, state, zipCode, licenseNumber, licenseExpiry } = req.body;
 
@@ -71,7 +69,7 @@ const register = async (req, res) => {
 };
 
 // User Login Controller
-const login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -110,7 +108,7 @@ const login = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
-      user: user.toJSON(),
+      user: user,
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -123,7 +121,7 @@ const login = async (req, res) => {
 };
 
 // Get Current User Profile
-const getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
 
@@ -150,7 +148,7 @@ const getProfile = async (req, res) => {
 };
 
 // Update User Profile
-const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const userId = req.userId;
     const { firstName, lastName, phone, address, city, state, zipCode } = req.body;
@@ -194,7 +192,7 @@ const updateProfile = async (req, res) => {
 };
 
 // Change Password Controller
-const changePassword = async (req, res) => {
+export const changePassword = async (req, res) => {
   try {
     const userId = req.userId;
     const { currentPassword, newPassword } = req.body;
@@ -253,7 +251,7 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = {
+export default {
   register,
   login,
   getProfile,

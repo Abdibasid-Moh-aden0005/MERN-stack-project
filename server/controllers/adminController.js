@@ -1,10 +1,10 @@
 // Admin Controller - Handles admin operations
-const Booking = require('../models/Booking');
-const Car = require('../models/Car');
-const User = require('../models/User');
+import Booking from '../models/Booking.js';
+import Car from '../models/Car.js';
+import User from '../models/User.js';
 
 // Get all bookings (Admin only)
-const getAllBookings = async (req, res) => {
+export const getAllBookings = async (req, res) => {
   try {
     const { status, carId, customerId, page = 1, limit = 10 } = req.query;
 
@@ -55,7 +55,7 @@ const getAllBookings = async (req, res) => {
 };
 
 // Update booking status (Admin only)
-const updateBookingStatus = async (req, res) => {
+export const updateBookingStatus = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { status, adminNotes } = req.body;
@@ -106,7 +106,7 @@ const updateBookingStatus = async (req, res) => {
 };
 
 // Update payment status (Admin only)
-const updatePaymentStatus = async (req, res) => {
+export const updatePaymentStatus = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { paymentStatus, paymentMethod } = req.body;
@@ -153,7 +153,7 @@ const updatePaymentStatus = async (req, res) => {
 };
 
 // Get dashboard statistics (Admin only)
-const getDashboardStats = async (req, res) => {
+export const getDashboardStats = async (req, res) => {
   try {
     // Total bookings
     const totalBookings = await Booking.countDocuments();
@@ -244,9 +244,185 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-module.exports = {
+// Get all users (Admin only)
+export const getAllUsers = async (req, res) => {
+  try {
+    const { role, page = 1, limit = 10 } = req.query;
+
+    const filter = {};
+    if (role) {
+      filter.role = role;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const users = await User.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await User.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      message: 'All users retrieved',
+      data: users,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error retrieving users',
+      error: error.message,
+    });
+  }
+};
+
+// Delete user (Admin only)
+export const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Prevent deleting self
+    if (user._id.toString() === req.userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot delete your own admin account',
+      });
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting user',
+      error: error.message,
+    });
+  }
+};
+
+// Update user (Admin only)
+export const updateUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { firstName, lastName, phone, address, city, state, zipCode, role, isActive, licenseNumber, licenseExpiry } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Update fields
+    if (firstName) user.firstName = firstName.trim();
+    if (lastName) user.lastName = lastName.trim();
+    if (phone) user.phone = phone;
+    if (address) user.address = address.trim();
+    if (city) user.city = city.trim();
+    if (state) user.state = state.trim();
+    if (zipCode) user.zipCode = zipCode;
+    if (role) user.role = role;
+    if (isActive !== undefined) user.isActive = isActive;
+    if (licenseNumber) user.licenseNumber = licenseNumber.trim();
+    if (licenseExpiry) user.licenseExpiry = licenseExpiry;
+
+    user.updatedAt = Date.now();
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      user,
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating user',
+      error: error.message,
+    });
+  }
+};
+
+// Add new user (Admin only)
+export const addUser = async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, phone, address, city, state, zipCode, role, licenseNumber, licenseExpiry } = req.body;
+
+    // Check if user already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email',
+      });
+    }
+
+    // Create user
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
+      password, // Will be hashed by pre-save hook
+      phone,
+      address,
+      city,
+      state,
+      zipCode,
+      role: role || 'customer',
+      licenseNumber,
+      licenseExpiry,
+    });
+
+    await newUser.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      user: newUser,
+    });
+  } catch (error) {
+    console.error('Add user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating user',
+      error: error.message,
+    });
+  }
+};
+
+export default {
   getAllBookings,
   updateBookingStatus,
   updatePaymentStatus,
   getDashboardStats,
+  getAllUsers,
+  deleteUser,
+  updateUser,
+  addUser,
 };

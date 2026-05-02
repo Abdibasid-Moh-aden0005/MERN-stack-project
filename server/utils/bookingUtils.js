@@ -1,9 +1,9 @@
 // Booking Utility Functions - Helper functions for booking operations
-const Booking = require('../models/Booking');
-const Car = require('../models/Car');
+import Booking from '../models/Booking.js';
+import Car from '../models/Car.js';
 
 // Calculate number of days between two dates
-const calculateDays = (pickupDate, dropoffDate) => {
+export const calculateDays = (pickupDate, dropoffDate) => {
   const pickup = new Date(pickupDate);
   const dropoff = new Date(dropoffDate);
   const timeDiff = dropoff - pickup;
@@ -12,12 +12,12 @@ const calculateDays = (pickupDate, dropoffDate) => {
 };
 
 // Calculate total rent
-const calculateTotalRent = (rentPerDay, numberOfDays) => {
+export const calculateTotalRent = (rentPerDay, numberOfDays) => {
   return rentPerDay * numberOfDays;
 };
 
 // Check if car is available for given dates
-const checkCarAvailability = async (carId, pickupDate, dropoffDate, excludeBookingId = null) => {
+export const checkCarAvailability = async (carId, pickupDate, dropoffDate, excludeBookingId = null) => {
   try {
     const pickup = new Date(pickupDate);
     const dropoff = new Date(dropoffDate);
@@ -44,13 +44,14 @@ const checkCarAvailability = async (carId, pickupDate, dropoffDate, excludeBooki
 
     return !existingBooking; // Return true if available (no overlapping bookings)
   } catch (error) {
-    console.error('Availability check error:', error);
+    console.log('Availability check error:', error);
     return false;
+   
   }
 };
 
 // Validate booking dates
-const validateBookingDates = (pickupDate, dropoffDate, pickupTime, dropoffTime) => {
+export const validateBookingDates = (pickupDate, dropoffDate, pickupTime, dropoffTime) => {
   const errors = [];
 
   const pickup = new Date(pickupDate);
@@ -64,7 +65,7 @@ const validateBookingDates = (pickupDate, dropoffDate, pickupTime, dropoffTime) 
   }
 
   // Check if dropoff is after pickup
-  if (dropoff <= pickup) {
+  if (dropoff < pickup) {
     errors.push('Dropoff date must be after pickup date');
   }
 
@@ -84,14 +85,14 @@ const validateBookingDates = (pickupDate, dropoffDate, pickupTime, dropoffTime) 
 };
 
 // Generate booking reference number
-const generateBookingReference = () => {
+export const generateBookingReference = () => {
   const timestamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `BK-${timestamp}-${random}`;
 };
 
 // Calculate refund amount based on cancellation time
-const calculateRefund = (totalRent, insuranceCost, additionalCharges, pickupDate) => {
+export const calculateRefund = (totalRent, insuranceCost, additionalCharges, pickupDate) => {
   const pickup = new Date(pickupDate);
   const today = new Date();
   const hoursUntilPickup = (pickup - today) / (1000 * 60 * 60);
@@ -121,13 +122,4 @@ const calculateRefund = (totalRent, insuranceCost, additionalCharges, pickupDate
     amount: refundAmount,
     percentage: refundPercentage,
   };
-};
-
-module.exports = {
-  calculateDays,
-  calculateTotalRent,
-  checkCarAvailability,
-  validateBookingDates,
-  generateBookingReference,
-  calculateRefund,
 };

@@ -1,12 +1,12 @@
 // Authentication Middleware - Verifies JWT tokens and protects routes
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 // Middleware to verify JWT token and attach user to request
-const authMiddleware = async (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
   try {
     // Get token from headers
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({
@@ -43,7 +43,7 @@ const authMiddleware = async (req, res, next) => {
 };
 
 // Middleware to check if user is admin
-const adminMiddleware = (req, res, next) => {
+export const adminMiddleware = (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -70,7 +70,7 @@ const adminMiddleware = (req, res, next) => {
 };
 
 // Middleware to check if user is customer
-const customerMiddleware = (req, res, next) => {
+export const customerMiddleware = (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -94,10 +94,4 @@ const customerMiddleware = (req, res, next) => {
       error: error.message,
     });
   }
-};
-
-module.exports = {
-  authMiddleware,
-  adminMiddleware,
-  customerMiddleware,
 };

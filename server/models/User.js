@@ -1,10 +1,11 @@
 // User Model - Handles customer and admin user data
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import validator from "validator"
 
 const userSchema = new mongoose.Schema(
   {
-    // Personal Information
+    // ... same as before
     firstName: {
       type: String,
       required: [true, 'First name is required'],
@@ -20,10 +21,7 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
-      match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-        'Please provide a valid email',
-      ],
+      validate: [validator.isEmail,'Please provide a valid email'],
     },
     password: {
       type: String,
@@ -73,14 +71,14 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
     // Timestamps
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
+    // createdAt: {
+    //   type: Date,
+    //   default: Date.now,
+    // },
+    // updatedAt: {
+    //   type: Date,
+    //   default: Date.now,
+    // },
   },
   { timestamps: true }
 );
@@ -112,4 +110,5 @@ userSchema.methods.toJSON = function () {
   return user;
 };
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+export default User;

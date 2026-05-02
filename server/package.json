@@ -1,6 +1,7 @@
 {
   "name": "car-rental-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Car Rental Booking System Backend",
   "main": "server.js",
   "scripts": {

@@ -1,6 +1,9 @@
 // Seed script to add demo cars to the database
-const mongoose = require('mongoose');
-require('dotenv').config();
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // MongoDB connection string from environment variable
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/carrentaldb';

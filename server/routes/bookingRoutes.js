@@ -1,20 +1,21 @@
-// Booking Routes - API endpoints for booking operations
-const express = require('express');
-const router = express.Router();
-const {
+// Booking Routes - API endpoints for rental bookings
+import express from 'express';
+import {
   createBooking,
   getMyBookings,
   getBookingDetails,
   cancelBooking,
   checkAvailability,
-} = require('../controllers/bookingController');
-const { authMiddleware } = require('../middleware/authMiddleware');
+} from '../controllers/bookingController.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
-// Public route
+const router = express.Router();
+
+// Public Routes
 // GET /api/bookings/check-availability - Check if car is available for dates
 router.get('/check-availability', checkAvailability);
 
-// Protected routes (require authentication)
+// Protected Routes (Auth required)
 // POST /api/bookings - Create new booking
 router.post('/', authMiddleware, createBooking);
 
@@ -27,4 +28,4 @@ router.get('/:bookingId', authMiddleware, getBookingDetails);
 // PUT /api/bookings/:bookingId/cancel - Cancel booking
 router.put('/:bookingId/cancel', authMiddleware, cancelBooking);
 
-module.exports = router;
+export default router;

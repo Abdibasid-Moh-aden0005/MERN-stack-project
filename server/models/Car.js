@@ -1,9 +1,9 @@
 // Car Model - Handles car inventory and details
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const carSchema = new mongoose.Schema(
   {
-    // Car Information
+    // ... same as before
     name: {
       type: String,
       required: [true, 'Car name is required'],
@@ -103,4 +103,5 @@ const carSchema = new mongoose.Schema(
 carSchema.index({ brand: 1, fuelType: 1, seatingCapacity: 1 });
 carSchema.index({ name: 'text' });
 
-module.exports = mongoose.model('Car', carSchema);
+const Car = mongoose.model('Car', carSchema);
+export default Car;

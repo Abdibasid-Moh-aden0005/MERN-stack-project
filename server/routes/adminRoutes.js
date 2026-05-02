@@ -1,22 +1,34 @@
-// Admin Routes - API endpoints for admin operations
-const express = require('express');
-const router = express.Router();
-const { getAllBookings, updateBookingStatus, updatePaymentStatus, getDashboardStats } = require('../controllers/adminController');
-const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
+// Admin Routes - API endpoints for administrative operations
+import express from 'express';
+import {
+  getAllBookings,
+  updateBookingStatus,
+  updatePaymentStatus,
+  getDashboardStats,
+  getAllUsers,
+  deleteUser,
+  updateUser,
+  addUser,
+} from '../controllers/adminController.js';
+import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware.js';
 
-// All admin routes require authentication and admin role
+const router = express.Router();
+
+// Apply admin protection to all routes
 router.use(authMiddleware, adminMiddleware);
 
-// GET /api/admin/dashboard - Get dashboard statistics
+// Admin Dashboard
 router.get('/dashboard', getDashboardStats);
 
-// GET /api/admin/bookings - Get all bookings
+// Booking Management
 router.get('/bookings', getAllBookings);
-
-// PUT /api/admin/bookings/:bookingId/status - Update booking status
 router.put('/bookings/:bookingId/status', updateBookingStatus);
-
-// PUT /api/admin/bookings/:bookingId/payment - Update payment status
 router.put('/bookings/:bookingId/payment', updatePaymentStatus);
 
-module.exports = router;
+// User Management
+router.get('/users', getAllUsers);
+router.post('/users', addUser);
+router.put('/users/:userId', updateUser);
+router.delete('/users/:userId', deleteUser);
+
+export default router;

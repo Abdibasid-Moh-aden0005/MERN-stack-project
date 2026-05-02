@@ -1,12 +1,13 @@
 // Validation Middleware - Input validation and sanitization
-const validator = require('validator');
+import validator from 'validator';
 
 // Validate user registration input
-const validateUserRegistration = (req, res, next) => {
+export const validateUserRegistration = (req, res, next) => {
   const { firstName, lastName, email, password, phone, address, city, state, zipCode, licenseNumber, licenseExpiry } = req.body;
 
   const errors = [];
 
+  // ... same as before
   // First name validation
   if (!firstName || firstName.trim() === '') {
     errors.push('First name is required');
@@ -80,7 +81,7 @@ const validateUserRegistration = (req, res, next) => {
 };
 
 // Validate user login input
-const validateUserLogin = (req, res, next) => {
+export const validateUserLogin = (req, res, next) => {
   const { email, password } = req.body;
 
   const errors = [];
@@ -102,9 +103,4 @@ const validateUserLogin = (req, res, next) => {
   }
 
   next();
-};
-
-module.exports = {
-  validateUserRegistration,
-  validateUserLogin,
 };
