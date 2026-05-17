@@ -4,12 +4,14 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const apiRequest = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
-  const headers = { ...options.headers };
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
 
-  if (headers['Content-Type'] === undefined) {
+  // If the body is FormData (e.g. for uploads), we must not set Content-Type manually
+  if (options.body instanceof FormData) {
     delete headers['Content-Type'];
-  } else if (!headers['Content-Type']) {
-    headers['Content-Type'] = 'application/json';
   }
 
   if (token) {

@@ -208,10 +208,10 @@ const Customers = () => {
             placeholder="Search database by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-bg-card border border-white/10 rounded-[2rem] pl-16 pr-8 py-6 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-xl font-bold placeholder:text-text-dim/20"
+            className="w-full bg-bg-card border border-white/10 rounded-4xl pl-16 pr-8 py-6 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-xl font-bold placeholder:text-text-dim/20"
           />
         </div>
-        <button className="px-10 py-6 bg-bg-card border border-white/10 rounded-[2rem] text-text-dim hover:text-white hover:bg-white/5 transition-all font-black uppercase tracking-widest flex items-center gap-3">
+        <button className="px-10 py-6 bg-bg-card border border-white/10 rounded-4xl text-text-dim hover:text-white hover:bg-white/5 transition-all font-black uppercase tracking-widest flex items-center gap-3">
           <Filter size={20} />
           <span>Advanced Filters</span>
         </button>

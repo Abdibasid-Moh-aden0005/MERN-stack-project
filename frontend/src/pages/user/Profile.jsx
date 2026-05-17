@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useUser } from '../../context/UserContext';
 import { 
@@ -22,12 +22,30 @@ const Profile = () => {
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
+    email: user?.email || '',
     phone: user?.phone || '',
     address: user?.address || '',
     city: user?.city || '',
     state: user?.state || '',
     zipCode: user?.zipCode || '',
   });
+
+  // Sync profileData with user context when it changes
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        state: user.state || '',
+        zipCode: user.zipCode || '',
+      });
+    }
+  }, [user]);
+  console.log(profileData);
 
   // Password State
   const [passwordData, setPasswordData] = useState({
@@ -100,7 +118,7 @@ const Profile = () => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[120px] rounded-full -mr-48 -mt-48 animate-pulse" />
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
           <div className="relative">
-            <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white text-5xl font-black shadow-[0_20px_50px_rgba(var(--primary-rgb),0.3)]">
+            <div className="w-32 h-32 rounded-[2.5rem] bg-linear-to-br from-primary to-blue-600 flex items-center justify-center text-white text-5xl font-black shadow-[0_20px_50px_rgba(var(--primary-rgb),0.3)]">
               {user?.firstName[0]}{user?.lastName[0]}
             </div>
             <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded-2xl border-4 border-bg-dark flex items-center justify-center text-white">
@@ -128,7 +146,7 @@ const Profile = () => {
 
       {/* Status Messages */}
       {(message.text || error) && (
-        <div className={`p-6 rounded-[2rem] border animate-in zoom-in duration-300 flex items-center gap-4 ${
+        <div className={`p-6 rounded-4xl border animate-in zoom-in duration-300 flex items-center gap-4 ${
           (message.type === 'success') 
             ? 'bg-green-500/10 border-green-500/20 text-green-500' 
             : 'bg-red-500/10 border-red-500/20 text-red-500'
@@ -170,6 +188,13 @@ const Profile = () => {
                 <div className="relative">
                     <Phone size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-dim" />
                     <input name="phone" value={profileData.phone} onChange={handleProfileChange} className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-6 py-4 focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all font-bold text-white" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-text-dim uppercase tracking-widest ml-1">Email Address</label>
+                <div className="relative">
+                    <Mail size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-text-dim" />
+                    <input name="email" value={profileData.email} onChange={handleProfileChange} className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-6 py-4 focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all font-bold text-white" />
                 </div>
               </div>
 

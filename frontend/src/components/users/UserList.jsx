@@ -39,7 +39,7 @@ const UserList = ({ users, loading, onDelete, onEdit }) => {
         </thead>
         <tbody>
           {users.map((user) => (
-            <tr key={user._id} className="bg-white/5 hover:bg-white/[0.08] transition-all group rounded-2xl overflow-hidden">
+            <tr key={user._id} className="bg-white/5 hover:bg-pink-800 transition-all group rounded-2xl overflow-hidden">
               <td className="px-6 py-5 first:rounded-l-2xl">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-black text-xl shadow-[0_0_20px_rgba(var(--primary-rgb),0.2)]">

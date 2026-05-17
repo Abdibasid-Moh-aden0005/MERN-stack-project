@@ -151,21 +151,12 @@ export const getProfile = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.userId;
-    const { firstName, lastName, phone, address, city, state, zipCode } = req.body;
+    const { firstName, lastName, phone, address, city, state, zipCode, email } = req.body;
 
     // Find and update user
     const user = await User.findByIdAndUpdate(
       userId,
-      {
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-        phone: phone || undefined,
-        address: address || undefined,
-        city: city || undefined,
-        state: state || undefined,
-        zipCode: zipCode || undefined,
-        updatedAt: Date.now(),
-      },
+      { firstName, lastName, phone, address, city, state, zipCode, email },
       { new: true, runValidators: true }
     );
 
@@ -179,7 +170,7 @@ export const updateProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
-      user: user.toJSON(),
+      user: user.toJSON()
     });
   } catch (error) {
     console.error('Update profile error:', error);

@@ -75,7 +75,7 @@ const Sidebar = () => {
         {filteredItems.map((item) => (
           <NavLink
             key={item.path}
-            to={item.path}
+            to={`${item.path}`}
             className={({ isActive }) => `
               flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group
               ${isActive 
