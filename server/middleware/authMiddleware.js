@@ -1,6 +1,6 @@
 // Authentication Middleware - Verifies JWT tokens and protects routes
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 // Middleware to verify JWT token and attach user to request
 export const authMiddleware = async (req, res, next) => {
@@ -11,7 +11,7 @@ export const authMiddleware = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'No authentication token provided',
+        message: "No authentication token provided",
       });
     }
 
@@ -24,7 +24,7 @@ export const authMiddleware = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'User not found',
+        message: "User not found",
       });
     }
 
@@ -36,7 +36,7 @@ export const authMiddleware = async (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: 'Invalid or expired token',
+      message: "Invalid or expired token",
       error: error.message,
     });
   }
@@ -48,14 +48,14 @@ export const adminMiddleware = (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: "Authentication required",
       });
     }
 
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required',
+        message: "Admin access required",
       });
     }
 
@@ -63,7 +63,7 @@ export const adminMiddleware = (req, res, next) => {
   } catch (error) {
     return res.status(403).json({
       success: false,
-      message: 'Authorization failed',
+      message: "Authorization failed",
       error: error.message,
     });
   }
@@ -75,14 +75,14 @@ export const customerMiddleware = (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: "Authentication required",
       });
     }
 
-    if (req.user.role !== 'customer') {
+    if (req.user.role !== "customer") {
       return res.status(403).json({
         success: false,
-        message: 'Customer access required',
+        message: "Customer access required",
       });
     }
 
@@ -90,7 +90,7 @@ export const customerMiddleware = (req, res, next) => {
   } catch (error) {
     return res.status(403).json({
       success: false,
-      message: 'Authorization failed',
+      message: "Authorization failed",
       error: error.message,
     });
   }

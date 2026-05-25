@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -45,7 +45,7 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const data = await apiRequest('/admin/users');
@@ -57,9 +57,9 @@ export const UserProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateProfile = async (userData) => {
+  const updateProfile = useCallback(async (userData) => {
     setLoading(true);
     try {
       const data = await apiRequest('/auth/profile', {
@@ -77,9 +77,9 @@ export const UserProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const deleteUser = async (id) => {
+  const deleteUser = useCallback(async (id) => {
     setLoading(true);
     try {
       await apiRequest(`/admin/users/${id}`, { method: 'DELETE' });
@@ -90,9 +90,9 @@ export const UserProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const adminUpdateUser = async (id, userData) => {
+  const adminUpdateUser = useCallback(async (id, userData) => {
     setLoading(true);
     try {
       const data = await apiRequest(`/admin/users/${id}`, {
@@ -107,9 +107,9 @@ export const UserProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const adminAddUser = async (userData) => {
+  const adminAddUser = useCallback(async (userData) => {
     setLoading(true);
     try {
       const data = await apiRequest('/admin/users', {
@@ -124,9 +124,9 @@ export const UserProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const clearError = () => setError(null);
+  const clearError = useCallback(() => setError(null), []);
 
   return (
     <UserContext.Provider

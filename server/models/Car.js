@@ -1,60 +1,60 @@
 // Car Model - Handles car inventory and details
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const carSchema = new mongoose.Schema(
   {
     // ... same as before
     name: {
       type: String,
-      required: [true, 'Car name is required'],
+      required: [true, "Car name is required"],
       trim: true,
     },
     brand: {
       type: String,
-      required: [true, 'Car brand is required'],
+      required: [true, "Car brand is required"],
       trim: true,
     },
     model: {
       type: String,
-      required: [true, 'Car model is required'],
+      required: [true, "Car model is required"],
       trim: true,
     },
     year: {
       type: Number,
-      required: [true, 'Car year is required'],
+      required: [true, "Car year is required"],
       min: 1990,
       max: new Date().getFullYear() + 1,
     },
     color: {
       type: String,
-      required: [true, 'Car color is required'],
+      required: [true, "Car color is required"],
     },
     // Specifications
     fuelType: {
       type: String,
-      enum: ['Petrol', 'Diesel', 'Electric', 'Hybrid'],
-      required: [true, 'Fuel type is required'],
+      enum: ["Petrol", "Diesel", "Electric", "Hybrid"],
+      required: [true, "Fuel type is required"],
     },
     transmission: {
       type: String,
-      enum: ['Manual', 'Automatic'],
-      required: [true, 'Transmission type is required'],
+      enum: ["Manual", "Automatic"],
+      required: [true, "Transmission type is required"],
     },
     seatingCapacity: {
       type: Number,
-      required: [true, 'Seating capacity is required'],
+      required: [true, "Seating capacity is required"],
       min: 2,
       max: 8,
     },
     mileage: {
       type: Number,
-      required: [true, 'Mileage is required'],
+      required: [true, "Mileage is required"],
     },
     // Pricing
     rentPerDay: {
       type: Number,
-      required: [true, 'Rent per day is required'],
-      min: 0,
+      required: [true, "Rent per day is 10 and required"],
+      min: 10,
     },
     // Images - storing file paths
     images: [
@@ -67,6 +67,13 @@ const carSchema = new mongoose.Schema(
     isAvailable: {
       type: Boolean,
       default: true,
+    },
+    // status
+    status: {
+      type: "string",
+      enum: ["Available", "Reserved", "Maintainance"],
+      required: [true, "Status is required"],
+      default: "available",
     },
     // Features
     features: [
@@ -83,7 +90,7 @@ const carSchema = new mongoose.Schema(
     // Owner/Added by Admin
     addedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     // Timestamps
@@ -96,12 +103,12 @@ const carSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Index for faster searches
 carSchema.index({ brand: 1, fuelType: 1, seatingCapacity: 1 });
-carSchema.index({ name: 'text' });
+carSchema.index({ name: "text", status: "text" });
 
-const Car = mongoose.model('Car', carSchema);
+const Car = mongoose.model("Car", carSchema);
 export default Car;

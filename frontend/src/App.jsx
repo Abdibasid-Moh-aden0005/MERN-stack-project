@@ -25,6 +25,7 @@ import Register from './pages/auth/Register';
 import Home from './pages/user/Home';
 import Profile from './pages/user/Profile';
 import MyBookings from './pages/user/MyBookings';
+import CarDetails from './components/cars/CarDetails';
 
 function AppContent() {
   const { isAuthenticated, user, loading } = useAuth();
@@ -50,7 +51,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/cars/:id" element={<div className="p-8 text-white">Car Details Coming Soon...</div>} />
+          <Route path="/cars/:id" element={<CarDetails />} />
 
           {/* Admin Protected Routes */}
           <Route 

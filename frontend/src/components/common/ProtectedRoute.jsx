@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { isAuthenticated, user, loading } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      toast.error('Please, sign in.');
+    }
+  }, [loading, isAuthenticated]);
 
   if (loading) {
     return (

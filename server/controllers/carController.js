@@ -1,8 +1,8 @@
 // Car Controller - Handles car management operations
-import Car from '../models/Car.js';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+import Car from "../models/Car.js";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,18 +10,42 @@ const __dirname = path.dirname(__filename);
 // Add new car (Admin only)
 export const addCar = async (req, res) => {
   try {
-    const { name, brand, model, year, color, fuelType, transmission, seatingCapacity, mileage, rentPerDay, features, description } = req.body;
+    const {
+      name,
+      brand,
+      model,
+      year,
+      color,
+      fuelType,
+      transmission,
+      seatingCapacity,
+      mileage,
+      rentPerDay,
+      features,
+      description,
+    } = req.body;
 
     // Validate required fields
-    if (!name || !brand || !model || !year || !fuelType || !transmission || !seatingCapacity || !rentPerDay) {
+    if (
+      !name ||
+      !brand ||
+      !model ||
+      !year ||
+      !fuelType ||
+      !transmission ||
+      !seatingCapacity ||
+      !rentPerDay
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields',
+        message: "Missing required fields",
       });
     }
-    const url = "http://localhost:5000"
+    const url = "http://localhost:5000";
     // Get image paths from uploaded files
-    const images = req.files ? req.files.map(file => `/uploads/cars/${file.filename}`) : [];
+    const images = req.files
+      ? req.files.map((file) => `/uploads/cars/${file.filename}`)
+      : [];
 
     // Create new car
     const newCar = new Car({
@@ -37,7 +61,7 @@ export const addCar = async (req, res) => {
       rentPerDay: parseFloat(rentPerDay),
       images,
       features: features ? JSON.parse(features) : [],
-      description: description ? description.trim() : '',
+      description: description ? description.trim() : "",
       addedBy: req.userId,
       isAvailable: true,
     });
@@ -47,14 +71,14 @@ export const addCar = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Car added successfully',
+      message: "Car added successfully",
       car: newCar,
     });
   } catch (error) {
-    console.error('Add car error:', error);
+    console.error("Add car error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error adding car',
+      message: "Error adding car",
       error: error.message,
     });
   }
@@ -63,7 +87,8 @@ export const addCar = async (req, res) => {
 // Get all cars with filters
 export const getAllCars = async (req, res) => {
   try {
-    const { brand, fuelType, seatingCapacity, minPrice, maxPrice, search } = req.query;
+    const { brand, fuelType, seatingCapacity, minPrice, maxPrice, search } =
+      req.query;
 
     // Build filter object
     const filter = { isAvailable: true };
@@ -99,13 +124,13 @@ export const getAllCars = async (req, res) => {
     const cars = await Car.find(filter)
       .limit(limit)
       .skip(skip)
-      .populate('addedBy', 'firstName lastName email');
+      .populate("addedBy", "firstName lastName email");
 
     const total = await Car.countDocuments(filter);
 
     res.status(200).json({
       success: true,
-      message: 'Cars retrieved successfully',
+      message: "Cars retrieved successfully",
       data: cars,
       pagination: {
         total,
@@ -115,10 +140,10 @@ export const getAllCars = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get cars error:', error);
+    console.error("Get cars error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving cars',
+      message: "Error retrieving cars",
       error: error.message,
     });
   }
@@ -129,25 +154,28 @@ export const getCarById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const car = await Car.findById(id).populate('addedBy', 'firstName lastName email');
+    const car = await Car.findById(id).populate(
+      "addedBy",
+      "firstName lastName email",
+    );
 
     if (!car) {
       return res.status(404).json({
         success: false,
-        message: 'Car not found',
+        message: "Car not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Car details retrieved',
+      message: "Car details retrieved",
       car,
     });
   } catch (error) {
-    console.error('Get car error:', error);
+    console.error("Get car error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving car',
+      message: "Error retrieving car",
       error: error.message,
     });
   }
@@ -157,7 +185,22 @@ export const getCarById = async (req, res) => {
 export const updateCar = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, brand, model, year, color, fuelType, transmission, seatingCapacity, mileage, rentPerDay, features, description, isAvailable } = req.body;
+    const {
+      name,
+      brand,
+      model,
+      year,
+      color,
+      fuelType,
+      transmission,
+      seatingCapacity,
+      mileage,
+      rentPerDay,
+      features,
+      description,
+      isAvailable,
+      status,
+    } = req.body;
 
     // Find car
     const car = await Car.findById(id);
@@ -165,7 +208,7 @@ export const updateCar = async (req, res) => {
     if (!car) {
       return res.status(404).json({
         success: false,
-        message: 'Car not found',
+        message: "Car not found",
       });
     }
 
@@ -184,10 +227,12 @@ export const updateCar = async (req, res) => {
     if (features) car.features = JSON.parse(features);
     if (isAvailable !== undefined) car.isAvailable = isAvailable;
 
-     const url = "http://localhost:5000"
+    const url = "http://localhost:5000";
     // Handle new images if uploaded
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(file => `/uploads/cars/${file.filename}`);
+      const newImages = req.files.map(
+        (file) => `/uploads/cars/${file.filename}`,
+      );
       car.images = [...car.images, ...newImages];
     }
 
@@ -198,14 +243,14 @@ export const updateCar = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Car updated successfully',
-      car:newCar,
+      message: "Car updated successfully",
+      car: newCar,
     });
   } catch (error) {
-    console.error('Update car error:', error);
+    console.error("Update car error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error updating car',
+      message: "Error updating car",
       error: error.message,
     });
   }
@@ -221,14 +266,14 @@ export const deleteCar = async (req, res) => {
     if (!car) {
       return res.status(404).json({
         success: false,
-        message: 'Car not found',
+        message: "Car not found",
       });
     }
 
     // Delete associated image files
     if (car.images && car.images.length > 0) {
-      car.images.forEach(imagePath => {
-        const fullPath = path.join(__dirname, '../', imagePath);
+      car.images.forEach((imagePath) => {
+        const fullPath = path.join(__dirname, "../", imagePath);
         if (fs.existsSync(fullPath)) {
           fs.unlinkSync(fullPath);
         }
@@ -237,13 +282,13 @@ export const deleteCar = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Car deleted successfully',
+      message: "Car deleted successfully",
     });
   } catch (error) {
-    console.error('Delete car error:', error);
+    console.error("Delete car error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error deleting car',
+      message: "Error deleting car",
       error: error.message,
     });
   }
@@ -260,15 +305,15 @@ export const deleteCarImage = async (req, res) => {
     if (!car) {
       return res.status(404).json({
         success: false,
-        message: 'Car not found',
+        message: "Car not found",
       });
     }
 
     // Remove image from array
-    car.images = car.images.filter(img => img !== imageUrl);
+    car.images = car.images.filter((img) => img !== imageUrl);
 
     // Delete image file from disk
-    const fullPath = path.join(__dirname, '../', imageUrl);
+    const fullPath = path.join(__dirname, "../", imageUrl);
     if (fs.existsSync(fullPath)) {
       fs.unlinkSync(fullPath);
     }
@@ -277,14 +322,14 @@ export const deleteCarImage = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Image deleted successfully',
+      message: "Image deleted successfully",
       car,
     });
   } catch (error) {
-    console.error('Delete image error:', error);
+    console.error("Delete image error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error deleting image',
+      message: "Error deleting image",
       error: error.message,
     });
   }

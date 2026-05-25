@@ -55,12 +55,11 @@ const Sidebar = () => {
 
   return (
     
-    <div className="w-72 sticky top-0 h-screen bg-bg-dark border-r border-white/5 flex flex-col p-6 ">
+    <div className="w-72 sticky top-0 h-screen bg-bg-sidebar flex flex-col p-6 shadow-2xl z-50">
       {/* Logo */}
       <div className="flex items-center gap-3 mb-12 px-2">
-        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+        <div className="w-10 h-10 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20">
           <Car className="text-white" size={24} />
-
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white">LuxeDrive</h1>
@@ -77,14 +76,14 @@ const Sidebar = () => {
             key={item.path}
             to={`${item.path}`}
             className={({ isActive }) => `
-              flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group
+              flex items-center justify-between px-4 py-3 rounded transition-all duration-300 group
               ${isActive 
-                ? 'bg-primary/10 text-primary border border-primary/20' 
+                ? 'bg-white/10 text-white' 
                 : 'text-text-dim hover:bg-white/5 hover:text-white'}
             `}
           >
             <div className="flex items-center gap-4">
-              <item.icon size={22} className="transition-transform group-hover:scale-110" />
+              <item.icon size={22} className={`${({isActive}) => isActive ? 'text-primary' : 'text-text-dim group-hover:text-white'} transition-colors`} />
               <span className="font-medium">{item.name}</span>
             </div>
             <ChevronRight size={16} className="opacity-0 group-hover:opacity-40 transition-opacity" />
@@ -93,9 +92,9 @@ const Sidebar = () => {
       </nav>
 
       {/* Bottom Profile/Logout */}
-      <div className="mt-auto space-y-4 pt-6 border-t border-white/5">
+      <div className="mt-auto space-y-4 pt-6 border-t border-white/10">
         <div className="flex items-center gap-4 px-2">
-          <div className="w-10 h-10 rounded-full bg-bg-card border border-white/10 flex items-center justify-center text-primary font-bold">
+          <div className="w-10 h-10 rounded bg-white/5 border border-white/10 flex items-center justify-center text-white font-bold">
             {getInitials()}
           </div>
           <div className="flex-1 overflow-hidden">
@@ -106,7 +105,7 @@ const Sidebar = () => {
         
         <button
           onClick={loginOut}
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-text-dim hover:bg-red-500/10 hover:text-red-500 transition-all duration-300"
+          className="w-full flex items-center gap-4 px-4 py-3 rounded text-text-dim hover:bg-white/5 hover:text-white transition-all duration-300"
         >
           <LogOut size={22} />
           <span className="font-medium">Logout</span>
