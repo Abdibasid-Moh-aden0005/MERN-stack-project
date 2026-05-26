@@ -49,7 +49,7 @@ export const UserProvider = ({ children }) => {
     setLoading(true);
     try {
       const data = await apiRequest('/admin/users');
-      setUsers(data.users || data.data);
+      setUsers(data.data);
       return data;
     } catch (err) {
       setError(err.message);

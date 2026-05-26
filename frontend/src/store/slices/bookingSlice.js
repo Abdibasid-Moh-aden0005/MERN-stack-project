@@ -1,131 +1,133 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_ROOT = "http://localhost:5000/api";
 
-const apiRequest = async (endpoint, options = {}) => {
-  const token = localStorage.getItem('token');
-  const headers = { ...options.headers };
-
-  if (headers['Content-Type'] === undefined) {
-    delete headers['Content-Type'];
-  } else if (!headers['Content-Type']) {
-    headers['Content-Type'] = 'application/json';
+const parseJSON = async (response) => {
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.message || "Request failed");
   }
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
-    
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Something went wrong');
-    return data;
-  } catch (error) {
-    console.error('API Error:', error);
-    throw error;
-  }
+  return data;
 };
 
+const getToken = () => localStorage.getItem("token");
+
 export const fetchMyBookings = createAsyncThunk(
-  'bookings/fetchMyBookings',
+  "bookings/fetchMyBookings",
   async (filters = {}, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams();
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) params.append(key, filters[key]);
       });
-      const queryString = params.toString() ? `?${params.toString()}` : '';
-      const response = await apiRequest(`/bookings/my${queryString}`);
-      return response.bookings || response.data;
+      const queryString = params.toString() ? `?${params.toString()}` : "";
+      const response = await fetch(
+        `${API_ROOT}/bookings/my${queryString}`,
+        {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        },
+      );
+      const data = await parseJSON(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const createNewBooking = createAsyncThunk(
-  'bookings/createNewBooking',
+  "bookings/createNewBooking",
   async (bookingData, { rejectWithValue }) => {
     try {
-      const response = await apiRequest('/bookings', {
-        method: 'POST',
+      const response = await fetch(`${API_ROOT}/bookings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: JSON.stringify(bookingData),
       });
-      return response.booking || response.data;
+      const data = await parseJSON(response);
+      return data.booking || data.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const checkAvailability = createAsyncThunk(
-  'bookings/checkAvailability',
+  "bookings/checkAvailability",
   async ({ carId, pickupDate, dropoffDate }, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams({ carId, pickupDate, dropoffDate });
-      const response = await apiRequest(`/bookings/check-availability?${params.toString()}`);
-      return response;
+      const response = await fetch(
+        `${API_ROOT}/bookings/check-availability?${params.toString()}`,
+      );
+      const data = await parseJSON(response);
+      return data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const cancelBooking = createAsyncThunk(
-  'bookings/cancelBooking',
+  "bookings/cancelBooking",
   async ({ id, reason }, { rejectWithValue }) => {
     try {
-      const response = await apiRequest(`/bookings/${id}/cancel`, {
-        method: 'PUT',
+      const response = await fetch(`${API_ROOT}/bookings/${id}/cancel`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: JSON.stringify({ cancellationReason: reason }),
       });
-      return response.booking || response.data;
+      const data = await parseJSON(response);
+      return data.booking || data.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
-// Admin Actions
 export const fetchAllBookings = createAsyncThunk(
-  'bookings/fetchAllBookings',
+  "bookings/fetchAllBookings",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiRequest('/admin/bookings');
-      return response.bookings || response.data;
+      const response = await fetch(`${API_ROOT}/admin/bookings`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await parseJSON(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const updateBookingStatus = createAsyncThunk(
-  'bookings/updateBookingStatus',
+  "bookings/updateBookingStatus",
   async ({ id, status }, { rejectWithValue }) => {
     try {
-      const response = await apiRequest(`/admin/bookings/${id}/status`, {
-        method: 'PUT',
+      const response = await fetch(`${API_ROOT}/admin/bookings/${id}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: JSON.stringify({ status }),
       });
-      return response.booking || response.data;
+      const data = await parseJSON(response);
+      return data.booking || data.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 const bookingSlice = createSlice({
-  name: 'bookings',
+  name: "bookings",
   initialState: {
     bookings: [],
     currentBooking: null,
@@ -135,7 +137,7 @@ const bookingSlice = createSlice({
     availability: null,
   },
   reducers: {
-    resetBookingState: (state) => {
+    resetBookingState(state) {
       state.loading = false;
       state.error = null;
       state.success = false;
@@ -167,23 +169,49 @@ const bookingSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(checkAvailability.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(checkAvailability.fulfilled, (state, action) => {
+        state.loading = false;
         state.availability = action.payload;
       })
-      .addCase(fetchAllBookings.fulfilled, (state, action) => {
-        state.bookings = action.payload;
+      .addCase(checkAvailability.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchAllBookings.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllBookings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.bookings = action.payload;
+      })
+      .addCase(fetchAllBookings.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateBookingStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(updateBookingStatus.fulfilled, (state, action) => {
-        const index = state.bookings.findIndex(b => b._id === action.payload._id);
+        state.loading = false;
+        const index = state.bookings.findIndex(
+          (b) => b._id === action.payload._id,
+        );
         if (index !== -1) {
           state.bookings[index] = action.payload;
         }
+      })
+      .addCase(updateBookingStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
 export const { resetBookingState } = bookingSlice.actions;
 export default bookingSlice.reducer;
-
-

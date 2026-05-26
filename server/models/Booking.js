@@ -1,45 +1,45 @@
 // Booking Model - Handles car rental bookings and status tracking
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
     // ... same as before
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Customer ID is required'],
+      ref: "User",
+      required: [true, "Customer ID is required"],
     },
     // Reference to Car
     carId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Car',
-      required: [true, 'Car ID is required'],
+      ref: "Car",
+      required: [true, "Car ID is required"],
     },
     // Booking Dates and Times
     pickupDate: {
       type: Date,
-      required: [true, 'Pickup date is required'],
+      required: [true, "Pickup date is required"],
     },
     dropoffDate: {
       type: Date,
-      required: [true, 'Dropoff date is required'],
+      required: [true, "Dropoff date is required"],
     },
     pickupTime: {
       type: String, // Format: "HH:MM"
-      required: [true, 'Pickup time is required'],
+      required: [true, "Pickup time is required"],
     },
     dropoffTime: {
       type: String, // Format: "HH:MM"
-      required: [true, 'Dropoff time is required'],
+      required: [true, "Dropoff time is required"],
     },
     // Location Details
     pickupLocation: {
       type: String,
-      required: [true, 'Pickup location is required'],
+      required: [true, "Pickup location is required"],
     },
     dropoffLocation: {
       type: String,
-      required: [true, 'Dropoff location is required'],
+      required: [true, "Dropoff location is required"],
     },
     // Pricing Information
     numberOfDays: {
@@ -53,7 +53,7 @@ const bookingSchema = new mongoose.Schema(
     },
     totalRent: {
       type: Number,
-      required: [true, 'Total rent must be calculated'],
+      required: [true, "Total rent must be calculated"],
     },
     // Additional Charges
     additionalCharges: {
@@ -63,19 +63,27 @@ const bookingSchema = new mongoose.Schema(
     // Status
     status: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
-      default: 'Pending',
+      enum: ["Pending", "Confirmed", "Completed", "Cancelled"],
+      default: "Pending",
     },
     // Payment Information
     paymentStatus: {
       type: String,
-      enum: ['Pending', 'Completed', 'Failed'],
-      default: 'Pending',
+      enum: ["Pending", "Completed", "Failed"],
+      default: "Pending",
     },
     paymentMethod: {
       type: String,
-      enum: ['Credit Card', 'Debit Card', 'UPI', 'Net Banking', 'Cash on Delivery', 'Digital Wallet','Zaad'],
-      required: [true, 'Payment method is required'],
+      enum: [
+        "Credit Card",
+        "Debit Card",
+        "UPI",
+        "Net Banking",
+        "Cash on Delivery",
+        "Digital Wallet",
+        "Zaad",
+      ],
+      required: [true, "Payment method is required"],
     },
     // Special Requirements/Notes
     specialRequirements: {
@@ -110,17 +118,9 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    // Timestamps
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
-  { timestamps: true }
+  // Timestamps
+  { timestamps: true },
 );
 
 // Index for faster queries
@@ -130,12 +130,12 @@ bookingSchema.index({ pickupDate: 1, dropoffDate: 1 });
 bookingSchema.index({ status: 1 });
 
 // Virtual for total cost including insurance and additional charges
-bookingSchema.virtual('totalCost').get(function () {
+bookingSchema.virtual("totalCost").get(function () {
   return this.totalRent + this.additionalCharges + this.insuranceCost;
 });
 
 // Ensure virtuals are included when converting to JSON
-bookingSchema.set('toJSON', { virtuals: true });
+bookingSchema.set("toJSON", { virtuals: true });
 
-const Booking = mongoose.model('Booking', bookingSchema);
+const Booking = mongoose.model("Booking", bookingSchema);
 export default Booking;

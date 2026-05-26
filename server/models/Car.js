@@ -93,15 +93,6 @@ const carSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    // Timestamps
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
   { timestamps: true },
 );
