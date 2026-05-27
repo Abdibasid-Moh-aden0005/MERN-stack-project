@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Car, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import useAuthStore from '../../store/zustand/auth';
 import Button from '../../components/common/Button';
 
 const Login = () => {
@@ -9,7 +9,7 @@ const Login = () => {
     email: '',
     password: ''
   })
-  const { login, loading, error, clearError } = useAuth();
+  const { login, status, error, clearError } = useAuthStore();
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -106,7 +106,7 @@ const Login = () => {
 
             <Button 
               type="submit" 
-              loading={loading}
+              loading={status === 'loading'}
               className="w-full py-4 text-lg rounded-xl group shadow-lg shadow-primary/20 hover:shadow-primary/30"
             >
               Sign In <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
 import {
   Search,
   Filter,
@@ -17,13 +16,7 @@ import {
   AlertTriangle,
   Trash2,
 } from "lucide-react";
-import {
-  fetchCars,
-  addNewCar,
-  updateCar,
-  deleteCar,
-  resetCarStatus,
-} from "../../store/slices/carSlice";
+import useCarStore from "../../store/zustand/cars";
 import Button from "../../components/common/Button";
 import CarTable from "../../components/cars/CarTable";
 import ImageUpload from "../../components/cars/ImageUpload";
@@ -36,8 +29,12 @@ import "react-confirm-alert/src/react-confirm-alert.css";
 Modal.setAppElement("#root");
 
 const Cars = () => {
-  const dispatch = useDispatch();
-  const { cars, loading, success, error } = useSelector((state) => state.cars);
+  const { cars, loading, success, error } = useCarStore();
+  const fetchCars = useCarStore((state) => state.fetchCars);
+  const addNewCar = useCarStore((state) => state.addNewCar);
+  const updateCar = useCarStore((state) => state.updateCar);
+  const deleteCar = useCarStore((state) => state.deleteCar);
+  const resetCarStatus = useCarStore((state) => state.resetCarStatus);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -64,16 +61,16 @@ const Cars = () => {
   const [featureInput, setFeatureInput] = useState("");
 
   useEffect(() => {
-    dispatch(fetchCars());
-  }, []);
+    fetchCars();
+  }, [fetchCars]);
 
   useEffect(() => {
     if (success) {
       setIsFormOpen(false);
       setEditingCar(null);
-      dispatch(resetCarStatus());
+      resetCarStatus();
     }
-  }, [success, dispatch]);
+  }, [success, resetCarStatus]);
 
   const handleAddCar = () => {
     setEditingCar(null);
@@ -170,23 +167,23 @@ const Cars = () => {
                   </p>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <Button
-                    variant="danger"
-                    onClick={async () => {
-                      try {
-                        await dispatch(deleteCar(id)).unwrap();
-                        toast.success("car deleted successfully");
-                        onClose();
-                      } catch (err) {
-                        toast.error(err || "Failed to delete car");
-                      }
-                    }}
-                    loading={loading}
-                    icon={Trash2}
-                    className="py-4 rounded font-black uppercase tracking-[0.2em] shadow-lg shadow-red-500/20"
-                  >
-                    Authorize Deletion
-                  </Button>
+                    <Button
+                                    variant="danger"
+                                    onClick={async () => {
+                                      try {
+                                        await deleteCar(id);
+                                        toast.success("car deleted successfully");
+                                        onClose();
+                                      } catch (err) {
+                                        toast.error(err || "Failed to delete car");
+                                      }
+                                    }}
+                                    loading={loading}
+                                    icon={Trash2}
+                                    className="py-4 rounded font-black uppercase tracking-[0.2em] shadow-lg shadow-red-500/20"
+                                  >
+                                    Authorize Deletion
+                                  </Button>
                   <button
                     onClick={onClose}
                     className="py-4 text-text-dim font-black uppercase tracking-[0.2em] hover:text-text-main transition-all"
@@ -209,21 +206,17 @@ const Cars = () => {
     e.preventDefault();
     try {
       if (editingCar) {
-        await dispatch(
-          updateCar({
-            id: editingCar._id,
-            carData: formData,
-            newImages: newImages,
-          }),
-        ).unwrap();
+        await updateCar({
+          id: editingCar._id,
+          carData: formData,
+          newImages: newImages,
+        });
         toast.success("Edited successfully");
       } else {
-        await dispatch(
-          addNewCar({
-            carData: formData,
-            images: newImages,
-          }),
-        ).unwrap();
+        await addNewCar({
+          carData: formData,
+          images: newImages,
+        });
         toast.success("Added successfully");
       }
       setIsFormOpen(false);
@@ -254,7 +247,7 @@ const Cars = () => {
         </div>
         <div className="flex items-center gap-4">
           <button
-            onClick={() => dispatch(fetchCars())}
+            onClick={() => fetchCars()}
             className="p-4 bg-bg-dark hover:bg-gray-100 rounded border border-border text-text-dim hover:text-text-main transition-all group shadow-sm"
           >
             <RefreshCw

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUser } from "../../context/UserContext";
+import useUserStore from "../../store/zustand/users";
 import {
   Search,
   Filter,
@@ -28,14 +28,14 @@ Modal.setAppElement("#root");
 const Customers = () => {
   const {
     users,
-    loading,
+    status,
     fetchUsers,
     deleteUser,
     adminUpdateUser,
     adminAddUser,
     error,
     clearError,
-  } = useUser();
+  } = useUserStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -139,7 +139,7 @@ const Customers = () => {
                         toast.error(err.message || "Failed to delete user");
                       }
                     }}
-                    loading={loading}
+                    loading={status === 'loading'}
                     icon={Trash2}
                     className="py-4 rounded font-black uppercase tracking-[0.2em] shadow-lg shadow-red-500/20"
                   >
@@ -173,7 +173,7 @@ const Customers = () => {
       }
 
       if (selectedUser) {
-        await adminUpdateUser(selectedUser._id, dataToSend);
+        await adminUpdateUser({ id: selectedUser._id, userData: dataToSend });
         toast.success("Edited successfully");
       } else {
         await adminAddUser(dataToSend);
@@ -222,7 +222,7 @@ const Customers = () => {
               <RefreshCw
                 size={24}
                 className={
-                  loading
+                  status === 'loading'
                     ? "animate-spin"
                     : "group-hover:rotate-180 transition-transform duration-700"
                 }
@@ -305,7 +305,7 @@ const Customers = () => {
       <div className="glass-card p-0 border border-border overflow-hidden shadow-lg">
         <UserList
           users={filteredUsers}
-          loading={loading}
+          loading={status === 'loading'}
           onDelete={handleDeleteClick}
           onEdit={handleEdit}
         />
@@ -591,7 +591,7 @@ const Customers = () => {
           </button>
           <Button
             onClick={handleFormSubmit}
-            loading={loading}
+            loading={status === 'loading'}
             icon={Save}
             className="btn-primary px-10 py-4 shadow-lg shadow-primary/30"
           >

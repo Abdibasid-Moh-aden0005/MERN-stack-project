@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { 
   Calendar, 
   User, 
@@ -10,7 +9,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
-import { fetchAllBookings, updateBookingStatus } from '../../store/slices/bookingSlice';
+import useBookingStore from '../../store/zustand/Bookings';
 import Button from '../../components/common/Button';
 import { toast } from 'react-toastify';
 
@@ -99,18 +98,19 @@ const BookingList = ({ bookings, type, onComplete, loading }) => {
 };
 
 const AdminBookings = () => {
-  const dispatch = useDispatch();
-  const { bookings, loading } = useSelector((state) => state.bookings);
+  const { bookings, loading } = useBookingStore();
+  const fetchAllBookings = useBookingStore((state) => state.fetchAllBookings);
+  const updateBookingStatus = useBookingStore((state) => state.updateBookingStatus);
   const [activeTab, setActiveTab] = useState('pending');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    dispatch(fetchAllBookings());
-  }, [dispatch]);
+    fetchAllBookings();
+  }, [fetchAllBookings]);
 
   const handleComplete = async (id) => {
     try {
-      await dispatch(updateBookingStatus({ id, status: 'Completed' })).unwrap();
+      await updateBookingStatus({ id, status: 'Completed' });
       toast.success("Booking marked as completed!");
     } catch (err) {
       toast.error(err || "Failed to update booking");

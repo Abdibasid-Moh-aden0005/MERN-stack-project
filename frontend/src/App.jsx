@@ -1,11 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Provider } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { store } from './store';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { UserProvider } from './context/UserContext';
+import useAuthStore from './store/zustand/auth';
 
 // Layout
 import Sidebar from './components/layout/Sidebar';
@@ -28,11 +25,11 @@ import MyBookings from './pages/user/MyBookings';
 import CarDetails from './components/cars/CarDetails';
 
 function AppContent() {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, user, status } = useAuthStore();
   const location = useLocation();
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
 
-  if (loading && !isAuthenticated) {
+  if (status === 'loading' && !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-dark text-primary">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -139,15 +136,9 @@ function AppContent() {
 
 function App() {
   return (
-    <Provider store={store}>
-      <AuthProvider>
-        <UserProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </UserProvider>
-      </AuthProvider>
-    </Provider>
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

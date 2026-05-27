@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { 
   Calendar, 
   Clock, 
@@ -9,15 +8,15 @@ import {
   Package,
   Car
 } from 'lucide-react';
-import { fetchMyBookings } from '../../store/slices/bookingSlice';
+import useBookingStore from '../../store/zustand/Bookings';
 
 const MyBookings = () => {
-  const dispatch = useDispatch();
-  const { bookings, loading } = useSelector((state) => state.bookings);
+  const { bookings, loading } = useBookingStore();
+  const fetchMyBookings = useBookingStore((state) => state.fetchMyBookings);
 
   useEffect(() => {
-    dispatch(fetchMyBookings());
-  }, [dispatch]);
+    fetchMyBookings();
+  }, [fetchMyBookings]);
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {

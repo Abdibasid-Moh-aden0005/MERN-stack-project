@@ -11,10 +11,10 @@ import {
   LogOut,
   ChevronRight,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import useAuthStore from "../../store/zustand/auth";
 
 const Sidebar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   // function for handling logout :
   const loginOut = () => {

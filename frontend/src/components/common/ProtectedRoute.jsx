@@ -1,19 +1,19 @@
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import useAuthStore from '../../store/zustand/auth';
 import { toast } from 'react-toastify';
 
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, user, status } = useAuthStore();
   const location = useLocation();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (status !== 'loading' && !isAuthenticated) {
       toast.error('Please, sign in.');
     }
-  }, [loading, isAuthenticated]);
+  }, [status, isAuthenticated]);
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-dark">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>

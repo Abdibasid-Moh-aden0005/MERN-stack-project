@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
 import {
   DollarSign,
   ShoppingCart,
@@ -11,20 +10,20 @@ import {
   ChevronRight,
   Link,
 } from "lucide-react";
-import { fetchCars } from "../../store/slices/carSlice";
-import { useUser } from "../../context/UserContext";
+import useCarStore from "../../store/zustand/cars";
+import useUserStore from "../../store/zustand/users";
 import Button from "../../components/common/Button";
 import { NavLink } from "react-router-dom";
 
 const Dashboard = () => {
-  const dispatch = useDispatch();
-  const { cars, loading } = useSelector((state) => state.cars);
-  const { users, fetchUsers } = useUser();
+  const { cars, loading } = useCarStore();
+  const { users, fetchUsers } = useUserStore();
+  const fetchCars = useCarStore((state) => state.fetchCars);
 
   useEffect(() => {
-    dispatch(fetchCars());
+    fetchCars();
     fetchUsers();
-  }, [dispatch, fetchUsers]);
+  }, [fetchCars, fetchUsers]);
 
   // Calculate new users trend
   const calculateTrend = () => {

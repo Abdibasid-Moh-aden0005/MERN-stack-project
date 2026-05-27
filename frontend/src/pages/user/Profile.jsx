@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useUser } from '../../context/UserContext';
+import useAuthStore from '../../store/zustand/auth';
+import useUserStore from '../../store/zustand/users';
 import { 
   User as UserIcon, 
   Mail, 
@@ -15,8 +15,9 @@ import {
 import Button from '../../components/common/Button';
 
 const Profile = () => {
-  const { user, refreshUser } = useAuth();
-  const { updateProfile, loading, error, clearError } = useUser();
+  const { user } = useAuthStore();
+  const { updateProfile, status, error, clearError } = useUserStore();
+  const refreshUser = () => useAuthStore.getState().refreshUser();
   
   // Profile Details State
   const [profileData, setProfileData] = useState({
@@ -213,7 +214,7 @@ const Profile = () => {
               </div>
 
               <div className="pt-6">
-                <Button loading={loading} icon={Save} className="btn-primary w-full py-5 text-sm uppercase tracking-[0.2em] font-black shadow-xl shadow-primary/20">
+                <Button loading={status === 'loading'} icon={Save} className="btn-primary w-full py-5 text-sm uppercase tracking-[0.2em] font-black shadow-xl shadow-primary/20">
                   Securely Update Profile
                 </Button>
               </div>
@@ -274,7 +275,7 @@ const Profile = () => {
               </div>
 
               <div className="pt-4">
-                <Button variant="secondary" loading={loading} className="w-full py-5 rounded font-black uppercase tracking-[0.2em] border-orange-500/30 text-orange-600 hover:bg-orange-50 hover:border-orange-500 transition-all">
+                <Button variant="secondary" loading={status === 'loading'} className="w-full py-5 rounded font-black uppercase tracking-[0.2em] border-orange-500/30 text-orange-600 hover:bg-orange-50 hover:border-orange-500 transition-all">
                   Update Credentials
                 </Button>
               </div>

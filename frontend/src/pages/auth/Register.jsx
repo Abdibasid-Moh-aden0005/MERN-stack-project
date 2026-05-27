@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Car, AlertCircle, Phone, MapPin, CreditCard, Calendar } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import useAuthStore from '../../store/zustand/auth';
 import Button from '../../components/common/Button';
 
 const Register = () => {
@@ -19,7 +19,7 @@ const Register = () => {
     licenseNumber: '',
     licenseExpiry: '',
   });
-  const { register, loading, error, clearError } = useAuth();
+  const { register, status, error, clearError } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -300,7 +300,7 @@ const Register = () => {
 
             <Button 
               type="submit" 
-              loading={loading}
+              loading={status === 'loading'}
               className="w-full py-4 text-lg rounded-xl group mt-4 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
             >
               Create Account <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />

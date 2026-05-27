@@ -70,10 +70,10 @@ const carSchema = new mongoose.Schema(
     },
     // status
     status: {
-      type: "string",
+      type: String,
       enum: ["Available", "Reserved", "Maintainance"],
       required: [true, "Status is required"],
-      default: "available",
+      default: "Available",
     },
     // Features
     features: [

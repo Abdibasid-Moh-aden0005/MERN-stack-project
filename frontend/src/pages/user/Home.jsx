@@ -1,23 +1,22 @@
 import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { fetchCars } from '../../store/slices/carSlice';
-import { useAuth } from '../../context/AuthContext';
+import useCarStore from '../../store/zustand/cars';
+import useAuthStore from '../../store/zustand/auth';
 import CarCard from '../../components/cars/CarCard';
 import { Search, Filter, ArrowRight, Car } from 'lucide-react';
 import Button from '../../components/common/Button';
 
 const Home = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { cars, loading } = useSelector((state) => state.cars);
-  const { isAuthenticated } = useAuth();
+  const { cars, loading } = useCarStore();
+  const { isAuthenticated } = useAuthStore();
+  const fetchCars = useCarStore((state) => state.fetchCars);
 
   useEffect(() => {
-    dispatch(fetchCars());
-  }, [dispatch]);
+    fetchCars();
+  }, [fetchCars]);
 
   const handleBookNow = (car) => {
     if (!isAuthenticated) {
