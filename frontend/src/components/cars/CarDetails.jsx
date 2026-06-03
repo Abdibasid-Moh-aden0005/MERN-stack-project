@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useCarStore from "../../store/zustand/cars";
 import {
@@ -8,6 +8,12 @@ import {
   ArrowLeft,
   Check,
   Calendar,
+  Gauge,
+  Zap,
+  Timer,
+  ChevronRight,
+  Star,
+  MapPin,
 } from "lucide-react";
 import Button from "../common/Button";
 
@@ -21,6 +27,14 @@ const CarDetails = () => {
     fetchCarDetails(id);
   }, [fetchCarDetails, id]);
 
+  const getImageUrl = (image) => {
+    if (!image) return "https://via.placeholder.com/800x600?text=No+Image";
+    if (image.startsWith("http")) return image;
+    return `http://localhost:5000${image}`;
+  };
+
+  const [selectedImage, setSelectedImage] = useState(0);
+
   if (loading) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
@@ -32,160 +46,261 @@ const CarDetails = () => {
   if (error || !selectedCar) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
-        <p className="text-red-500 text-lg font-semibold">
-          {error || "Car not found"}
-        </p>
-        <button onClick={() => navigate(-1)} className="btn-secondary">
-          Go Back
-        </button>
+        <p className="text-red-500 text-lg font-semibold">{error || "Car not found"}</p>
+        <button onClick={() => navigate(-1)} className="btn-secondary">Go Back</button>
       </div>
     );
   }
 
-  // Placeholder logic for missing images
-  const getImageUrl = (image) => {
-    if (!image)
-      return "https://via.placeholder.com/800x600?text=No+Image+Available";
-    if (image.startsWith("http")) return image;
-    return `http://localhost:5000${image}`;
-  };
+  const mainImage = selectedCar.images?.[selectedImage]
+    ? getImageUrl(selectedCar.images[selectedImage])
+    : getImageUrl(null);
 
-  const mainImage =
-    selectedCar.images && selectedCar.images.length > 0
-      ? getImageUrl(selectedCar.images[0])
-      : getImageUrl(null);
+  const allImages = selectedCar.images?.length > 0 ? selectedCar.images : [null];
+
+  const specsCards = [
+    { label: "Top Speed", value: "191 MPH", icon: Gauge },
+    { label: "0-60 MPH", value: "3.5 SEC", icon: Timer },
+    { label: "Horsepower", value: "443 HP", icon: Zap },
+    { label: "Torque", value: "390 LB-FT", icon: Settings },
+  ];
 
   return (
-    <div className="max-w-360 mx-auto p-4 md:p-8 space-y-8 animate-fade-in">
-      {/* Header / Back Button */}
+    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6 animate-fade-in">
+      {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center text-text-dim hover:text-primary transition-colors font-semibold text-sm uppercase tracking-wider"
+        className="flex items-center text-text-dim hover:text-primary transition-colors font-medium text-sm"
       >
         <ArrowLeft size={16} className="mr-2" /> Back to Fleet
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Images */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="rounded-lg overflow-hidden border border-border shadow-sm aspect-[16/10] bg-white">
+        {/* Left: Images & Specs */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Main Image */}
+          <div className="rounded-xl overflow-hidden border border-border bg-white shadow-sm aspect-[16/10]">
             <img
               src={mainImage}
               alt={selectedCar.name}
               className="w-full h-full object-cover"
             />
           </div>
-          {selectedCar.images && selectedCar.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-4">
-              {selectedCar.images.slice(1).map((img, index) => (
-                <div
+
+          {/* Thumbnails */}
+          {allImages.length > 1 && (
+            <div className="grid grid-cols-5 gap-3">
+              {allImages.map((img, index) => (
+                <button
                   key={index}
-                  className="rounded-lg overflow-hidden border border-border aspect-square bg-white cursor-pointer hover:border-primary transition-colors"
+                  onClick={() => setSelectedImage(index)}
+                  className={`rounded-lg overflow-hidden border-2 aspect-video transition-all ${
+                    selectedImage === index ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
+                  }`}
                 >
                   <img
                     src={getImageUrl(img)}
-                    alt={`${selectedCar.name} detail ${index + 1}`}
+                    alt={`View ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
-                </div>
+                </button>
               ))}
+            </div>
+          )}
+
+          {/* Specs Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {specsCards.map((spec, idx) => (
+              <div key={idx} className="bg-white border border-border rounded-xl p-4 text-center shadow-sm">
+                <spec.icon size={20} className="text-primary mx-auto mb-2" />
+                <p className="text-lg font-bold text-text-main">{spec.value}</p>
+                <p className="text-xs text-text-dim font-medium">{spec.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Vehicle Specifications */}
+          <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-4">Vehicle Specifications</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between py-2.5 border-b border-border/60">
+                <div className="flex items-center gap-2 text-sm text-text-dim">
+                  <Settings size={14} className="text-primary/70" />
+                  <span>Transmission</span>
+                </div>
+                <span className="text-sm font-semibold text-text-main">{selectedCar.transmission}</span>
+              </div>
+              <div className="flex items-center justify-between py-2.5 border-b border-border/60">
+                <div className="flex items-center gap-2 text-sm text-text-dim">
+                  <Fuel size={14} className="text-primary/70" />
+                  <span>Fuel Type</span>
+                </div>
+                <span className="text-sm font-semibold text-text-main">{selectedCar.fuelType}</span>
+              </div>
+              <div className="flex items-center justify-between py-2.5 border-b border-border/60">
+                <div className="flex items-center gap-2 text-sm text-text-dim">
+                  <Users size={14} className="text-primary/70" />
+                  <span>Seating</span>
+                </div>
+                <span className="text-sm font-semibold text-text-main">{selectedCar.seatingCapacity}</span>
+              </div>
+              <div className="flex items-center justify-between py-2.5 border-b border-border/60">
+                <div className="flex items-center gap-2 text-sm text-text-dim">
+                  <Gauge size={14} className="text-primary/70" />
+                  <span>Mileage</span>
+                </div>
+                <span className="text-sm font-semibold text-text-main">{selectedCar.mileage} km/l</span>
+              </div>
+              <div className="flex items-center justify-between py-2.5 border-b border-border/60">
+                <div className="flex items-center gap-2 text-sm text-text-dim">
+                  <span className="w-3 h-3 rounded bg-primary/70" />
+                  <span>Color</span>
+                </div>
+                <span className="text-sm font-semibold text-text-main">{selectedCar.color}</span>
+              </div>
+              <div className="flex items-center justify-between py-2.5 border-b border-border/60">
+                <div className="flex items-center gap-2 text-sm text-text-dim">
+                  <Calendar size={14} className="text-primary/70" />
+                  <span>Year</span>
+                </div>
+                <span className="text-sm font-semibold text-text-main">{selectedCar.year}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          {selectedCar.description && (
+            <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-3">Description</h3>
+              <p className="text-sm text-text-main leading-relaxed">{selectedCar.description}</p>
+            </div>
+          )}
+
+          {/* Features */}
+          {selectedCar.features?.length > 0 && (
+            <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-3">Key Features</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {selectedCar.features.map((feature, idx) => (
+                  <div key={idx} className="flex items-center text-sm text-text-main">
+                    <Check size={16} className="text-primary mr-2 shrink-0" />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Right Column: Details & Booking Action */}
+        {/* Right: Booking Sidebar */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="glass-card flex flex-col h-full">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded mb-2">
-                  {selectedCar.brand}
-                </span>
-                <h1 className="text-3xl font-bold text-text-main leading-tight">
-                  {selectedCar.name}
-                </h1>
-                <p className="text-text-dim mt-1 font-mono text-sm">
-                  {selectedCar.model} • {selectedCar.year}
-                </p>
+          <div className="bg-white border border-border rounded-xl p-6 shadow-sm sticky top-24">
+            {/* Premium Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full mb-4 border border-primary/20">
+              <Star size={12} />
+              Premium Tier
+            </div>
+
+            {/* Car Title */}
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-text-main leading-tight">{selectedCar.name}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={14} fill="currentColor" />
+                  ))}
+                </div>
+                <span className="text-xs text-text-dim">5.0</span>
               </div>
-              <div className="text-right">
-                <p className="text-[10px] uppercase font-bold text-text-dim tracking-widest">
-                  Daily Rate
-                </p>
-                <p className="text-3xl font-black text-primary">
-                  ${selectedCar.rentPerDay}
-                </p>
+              <div className="flex items-center gap-1 mt-2 text-xs text-text-dim">
+                <MapPin size={12} />
+                <span>Available in {selectedCar.city || "your area"}</span>
               </div>
+            </div>
+
+            {/* Price */}
+            <div className="flex items-baseline gap-1 mb-6">
+              <span className="text-3xl font-black text-primary">${selectedCar.rentPerDay}</span>
+              <span className="text-text-dim text-sm">/ DAY</span>
             </div>
 
             {/* Quick Specs */}
-            <div className="grid grid-cols-3 gap-4 py-6 border-y border-border my-6">
-              <div className="flex flex-col items-center justify-center p-3 rounded bg-bg-dark border border-border text-center">
-                <Users size={18} className="text-text-dim mb-2" />
-                <span className="text-xs font-bold text-text-main">
-                  {selectedCar.seatingCapacity} Seats
-                </span>
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="flex flex-col items-center p-3 rounded-lg bg-bg-dark border border-border">
+                <Users size={16} className="text-text-dim mb-1" />
+                <span className="text-xs font-semibold text-text-main">{selectedCar.seatingCapacity} Seats</span>
               </div>
-              <div className="flex flex-col items-center justify-center p-3 rounded bg-bg-dark border border-border text-center">
-                <Fuel size={18} className="text-text-dim mb-2" />
-                <span className="text-xs font-bold text-text-main">
-                  {selectedCar.fuelType}
-                </span>
+              <div className="flex flex-col items-center p-3 rounded-lg bg-bg-dark border border-border">
+                <Fuel size={16} className="text-text-dim mb-1" />
+                <span className="text-xs font-semibold text-text-main truncate">{selectedCar.fuelType}</span>
               </div>
-              <div className="flex flex-col items-center justify-center p-3 rounded bg-bg-dark border border-border text-center">
-                <Settings size={18} className="text-text-dim mb-2" />
-                <span className="text-xs font-bold text-text-main">
-                  {selectedCar.transmission === "Automatic" ? "Auto" : "Manual"}
-                </span>
+              <div className="flex flex-col items-center p-3 rounded-lg bg-bg-dark border border-border">
+                <Settings size={16} className="text-text-dim mb-1" />
+                <span className="text-xs font-semibold text-text-main">{selectedCar.transmission === "Automatic" ? "Auto" : "Manual"}</span>
               </div>
             </div>
 
-            {/* Description */}
-            {selectedCar.description && (
-              <div className="mb-6">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-2">
-                  Description
-                </h3>
-                <p className="text-text-main leading-relaxed text-sm">
-                  {selectedCar.description}
-                </p>
-              </div>
-            )}
+            {/* Booking Section */}
+            <div className="space-y-4 border-t border-border pt-6">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim">Booking Details</h3>
 
-            {/* Features List */}
-            {selectedCar.features && selectedCar.features.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-3">
-                  Key Features
-                </h3>
-                <ul className="grid grid-cols-2 gap-3">
-                  {selectedCar.features.map((feature, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-center text-sm text-text-main"
-                    >
-                      <Check size={16} className="text-primary mr-2 shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Action Area */}
-            <div className="mt-auto pt-6 border-t border-border space-y-4">
-              <div className="bg-bg-dark p-4 rounded border border-border flex items-center justify-between">
-                <div className="flex items-center text-sm text-text-main font-medium">
-                  <Calendar size={16} className="text-text-dim mr-2" /> Select
-                  Dates
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-dim uppercase tracking-widest">Pick-up Date</label>
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-bg-dark border border-border rounded-lg text-sm text-text-main">
+                    <Calendar size={14} className="text-text-dim" />
+                    <span className="text-text-dim">Select date</span>
+                  </div>
                 </div>
-                <span className="text-primary text-sm font-bold cursor-pointer hover:underline">
-                  Choose
-                </span>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-dim uppercase tracking-widest">Return Date</label>
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-bg-dark border border-border rounded-lg text-sm text-text-main">
+                    <Calendar size={14} className="text-text-dim" />
+                    <span className="text-text-dim">Select date</span>
+                  </div>
+                </div>
               </div>
-              <button className="w-full btn-primary py-4 text-base shadow-lg shadow-primary/20">
-                Reserve Vehicle
-              </button>
+
+              {/* Pricing Breakdown */}
+              <div className="space-y-2 bg-bg-dark rounded-lg p-4 border border-border">
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-dim">${selectedCar.rentPerDay} x 3 Days</span>
+                  <span className="font-medium text-text-main">${selectedCar.rentPerDay * 3}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-dim">Insurance Premium</span>
+                  <span className="font-medium text-text-main">$0.00</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-dim">Service Fee</span>
+                  <span className="font-medium text-text-main">$0.00</span>
+                </div>
+                <div className="border-t border-border pt-2 mt-2 flex justify-between">
+                  <span className="font-bold text-text-main">Total Amount</span>
+                  <span className="font-bold text-primary">${selectedCar.rentPerDay * 3}</span>
+                </div>
+              </div>
+
+              <Button className="w-full py-3 text-base shadow-lg shadow-primary/20">
+                <Check size={18} />
+                Reserve Now
+              </Button>
+              <p className="text-xs text-text-dim text-center">Free cancellation up to 24 hours before pick-up.</p>
+            </div>
+
+            {/* Status Badge */}
+            <div className={`mt-6 p-3 rounded-lg border text-sm font-medium flex items-center gap-2 ${
+              selectedCar.status === "Available"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                : selectedCar.status === "Reserved"
+                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : "bg-orange-50 border-orange-200 text-orange-700"
+            }`}>
+              <div className={`w-2 h-2 rounded-full ${
+                selectedCar.status === "Available" ? "bg-emerald-500" : selectedCar.status === "Reserved" ? "bg-blue-500" : "bg-orange-500"
+              }`} />
+              {selectedCar.status === "Available" ? "This vehicle is currently available for booking" : 
+               selectedCar.status === "Reserved" ? "This vehicle is currently reserved" : "This vehicle is in maintenance"}
             </div>
           </div>
         </div>

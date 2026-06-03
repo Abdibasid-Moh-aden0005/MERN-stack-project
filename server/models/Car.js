@@ -63,11 +63,6 @@ const carSchema = new mongoose.Schema(
         default: null,
       },
     ],
-    // Availability
-    isAvailable: {
-      type: Boolean,
-      default: true,
-    },
     // status
     status: {
       type: String,

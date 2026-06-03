@@ -1,108 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Calendar, 
-  User, 
-  CheckCircle, 
-  Clock, 
+import {
+  Calendar,
+  User,
+  CheckCircle,
+  Clock,
   Filter,
   Search,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  XCircle,
+  DollarSign,
+  TrendingUp,
+  Receipt,
+  Eye,
 } from 'lucide-react';
 import useBookingStore from '../../store/zustand/Bookings';
 import Button from '../../components/common/Button';
 import { toast } from 'react-toastify';
 
-const getImageUrl = (image) => {
-  if (!image) return 'https://via.placeholder.com/300x200?text=No+Image';
-  if (image.startsWith('http')) return image;
-  return `http://localhost:5000${image}`;
+const statusConfig = {
+  Pending: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
+  Confirmed: { bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500" },
+  Completed: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
+  Cancelled: { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" },
 };
 
-const BookingList = ({ bookings, type, onComplete, loading }) => {
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (bookings.length === 0) {
-    return (
-      <div className="glass-card flex flex-col items-center justify-center py-20 text-center border-dashed border-2 border-border shadow-sm">
-        <AlertCircle className="text-text-dim mb-4" size={40} />
-        <h3 className="text-lg font-bold text-text-main">No {type} bookings found</h3>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      {bookings.map((booking) => (
-        <div key={booking._id} className="glass-card hover:border-primary/30 transition-all group p-6 shadow-sm">
-          <div className="flex flex-col lg:flex-row items-center gap-6">
-            <div className="w-full lg:w-48 aspect-video rounded-xl overflow-hidden bg-gray-100 border border-border">
-              <img 
-                src={getImageUrl(booking.carId?.images?.[0])} 
-                alt="Car" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-1">
-                <p className="text-[10px] uppercase font-black text-text-dim tracking-widest">Car & Customer</p>
-                <h4 className="font-bold text-text-main">{booking.carId?.name || 'Vehicle'}</h4>
-                <div className="flex items-center gap-2 text-xs text-text-dim">
-                  <User size={12} />
-                  <span>{booking.customerId?.firstName} {booking.customerId?.lastName}</span>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-[10px] uppercase font-black text-text-dim tracking-widest">Dates & Duration</p>
-                <p className="text-sm font-semibold text-text-main">
-                  {new Date(booking.pickupDate).toLocaleDateString()} - {new Date(booking.dropoffDate).toLocaleDateString()}
-                </p>
-                <p className="text-xs text-text-dim">{booking.numberOfDays} Days • {booking.pickupTime}</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-[10px] uppercase font-black text-text-dim tracking-widest">Payment Status</p>
-                <p className="text-xl font-black text-primary">${booking.totalRent}</p>
-                <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter border ${
-                  booking.paymentStatus === 'Completed' ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-amber-700 border-amber-200 bg-amber-50'
-                }`}>
-                  {booking.paymentStatus}
-                </div>
-              </div>
-            </div>
-
-            {type === 'pending' && (
-              <div className="w-full lg:w-auto">
-                <Button 
-                  onClick={() => onComplete(booking._id)}
-                  icon={CheckCircle2}
-                  className="w-full lg:w-auto px-6 py-3 text-xs bg-emerald-600 hover:bg-emerald-500 shadow-md shadow-emerald-500/20"
-                >
-                  Mark Completed
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+const getImageUrl = (image) => {
+  if (!image) return null;
+  if (image.startsWith('http')) return image;
+  return `http://localhost:5000${image}`;
 };
 
 const AdminBookings = () => {
   const { bookings, loading } = useBookingStore();
   const fetchAllBookings = useBookingStore((state) => state.fetchAllBookings);
   const updateBookingStatus = useBookingStore((state) => state.updateBookingStatus);
-  const [activeTab, setActiveTab] = useState('pending');
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
     fetchAllBookings();
@@ -117,74 +51,260 @@ const AdminBookings = () => {
     }
   };
 
-  const pendingBookings = bookings.filter(b => 
-    b.status?.toLowerCase() !== 'completed' && b.status?.toLowerCase() !== 'cancelled'
-  ).filter(b => 
-    b.carId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    b.customerId?.firstName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleConfirm = async (id) => {
+    try {
+      await updateBookingStatus({ id, status: 'Confirmed' });
+      toast.success("Booking confirmed!");
+    } catch (err) {
+      toast.error(err || "Failed to confirm booking");
+    }
+  };
 
-  const completedBookings = bookings.filter(b => 
-    b.status?.toLowerCase() === 'completed'
-  ).filter(b => 
-    b.carId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    b.customerId?.firstName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleReject = async (id) => {
+    try {
+      await updateBookingStatus({ id, status: 'Cancelled' });
+      toast.success("Booking cancelled");
+    } catch (err) {
+      toast.error(err || "Failed to cancel booking");
+    }
+  };
+
+  const filteredBookings = bookings.filter((b) => {
+    const matchesSearch =
+      b.carId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${b.customerId?.firstName} ${b.customerId?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "All" || b.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalBookings = bookings.length;
+  const pendingBookings = bookings.filter((b) => b.status === 'Pending').length;
+  const confirmedBookings = bookings.filter((b) => b.status === 'Confirmed').length;
+  const completedBookings = bookings.filter((b) => b.status === 'Completed').length;
+  const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalRent || 0), 0);
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter text-text-main">BOOKING MANAGEMENT</h1>
-          <p className="text-text-dim mt-1 font-medium">Review and verify vehicle reservations.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-text-main">Bookings Review</h1>
+          <p className="text-text-dim text-sm mt-1">Review and manage recent customer reservations.</p>
         </div>
-        
-        <div className="relative w-full md:w-80 group">
+        <div className="relative w-full md:w-72 group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={18} />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Search bookings..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-border rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-text-main shadow-sm"
+            className="w-full bg-white border border-border rounded-lg pl-11 pr-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm text-text-main shadow-sm"
           />
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 p-1 bg-white rounded-2xl w-fit border border-border shadow-sm">
-        <button 
-          onClick={() => setActiveTab('pending')}
-          className={`px-8 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-            activeTab === 'pending' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-text-dim hover:text-text-main'
-          }`}
-        >
-          Pending Orders ({pendingBookings.length})
-        </button>
-        <button 
-          onClick={() => setActiveTab('completed')}
-          className={`px-8 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-            activeTab === 'completed' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-text-dim hover:text-text-main'
-          }`}
-        >
-          Completed ({completedBookings.length})
-        </button>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="bg-white border border-border rounded-lg p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold uppercase tracking-widest text-text-dim">Total Bookings</span>
+            <Receipt size={18} className="text-primary" />
+          </div>
+          <p className="text-2xl font-bold text-text-main">{totalBookings}</p>
+          <div className="flex items-center gap-1 mt-1 text-xs text-text-dim font-medium">
+            <TrendingUp size={14} className="text-emerald-500" />
+            <span>All reservations</span>
+          </div>
+        </div>
+        <div className="bg-white border border-border rounded-lg p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold uppercase tracking-widest text-text-dim">Pending</span>
+            <Clock size={18} className="text-amber-500" />
+          </div>
+          <p className="text-2xl font-bold text-text-main">{pendingBookings}</p>
+          <div className="flex items-center gap-1 mt-1 text-xs text-amber-600 font-medium">
+            <span>Awaiting review</span>
+          </div>
+        </div>
+        <div className="bg-white border border-border rounded-lg p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold uppercase tracking-widest text-text-dim">Confirmed</span>
+            <CheckCircle size={18} className="text-blue-500" />
+          </div>
+          <p className="text-2xl font-bold text-text-main">{confirmedBookings}</p>
+          <div className="flex items-center gap-1 mt-1 text-xs text-blue-600 font-medium">
+            <span>Active rentals</span>
+          </div>
+        </div>
+        <div className="bg-white border border-border rounded-lg p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold uppercase tracking-widest text-text-dim">Completed</span>
+            <CheckCircle2 size={18} className="text-emerald-500" />
+          </div>
+          <p className="text-2xl font-bold text-text-main">{completedBookings}</p>
+          <div className="flex items-center gap-1 mt-1 text-xs text-emerald-600 font-medium">
+            <span>Successfully finished</span>
+          </div>
+        </div>
+        <div className="bg-white border border-border rounded-lg p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold uppercase tracking-widest text-text-dim">Total Revenue</span>
+            <DollarSign size={18} className="text-emerald-500" />
+          </div>
+          <p className="text-2xl font-bold text-text-main">${totalRevenue.toLocaleString()}</p>
+          <div className="flex items-center gap-1 mt-1 text-xs text-emerald-600 font-medium">
+            <TrendingUp size={14} />
+            <span>From all bookings</span>
+          </div>
+        </div>
       </div>
 
-      {activeTab === 'pending' ? (
-        <BookingList 
-          bookings={pendingBookings} 
-          type="pending" 
-          onComplete={handleComplete} 
-          loading={loading}
-        />
-      ) : (
-        <BookingList 
-          bookings={completedBookings} 
-          type="completed" 
-          loading={loading}
-        />
-      )}
+      {/* Filter */}
+      <div className="flex items-center gap-3">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="bg-white border border-border rounded-lg px-4 py-2.5 text-sm text-text-dim focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm"
+        >
+          <option value="All">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <span className="text-sm text-text-dim">Active Order Queue</span>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border border-border rounded-lg overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-dim">Customer</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-dim">Car Model</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-dim">Rental Dates</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-dim">Total Price</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-dim">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-widest text-text-dim text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-20 text-center">
+                    <div className="flex justify-center">
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                    <p className="mt-3 text-text-dim text-sm font-medium">Loading bookings...</p>
+                  </td>
+                </tr>
+              ) : filteredBookings.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-20 text-center text-text-dim">
+                    <Receipt size={40} className="mx-auto mb-3 opacity-20" />
+                    <p className="text-base font-semibold">No bookings found</p>
+                    <p className="text-sm mt-1">Try adjusting your filters.</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredBookings.map((booking) => {
+                  const statusStyle = statusConfig[booking.status] || statusConfig.Pending;
+                  const customerName = `${booking.customerId?.firstName || ''} ${booking.customerId?.lastName || ''}`.trim() || 'Unknown';
+                  const initials = (booking.customerId?.firstName?.[0] || 'U') + (booking.customerId?.lastName?.[0] || '');
+                  const carImg = getImageUrl(booking.carId?.images?.[0]);
+
+                  return (
+                    <tr key={booking._id} className="hover:bg-bg-dark/50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0">
+                            {initials}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm text-text-main">{customerName}</p>
+                            <p className="text-xs text-text-dim">{booking.customerId?.email || ''}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {carImg && (
+                            <div className="w-12 h-8 rounded overflow-hidden bg-gray-100 border border-border shrink-0">
+                              <img src={carImg} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-sm text-text-main">{booking.carId?.name || 'Vehicle'}</p>
+                            <p className="text-xs text-text-dim">{booking.carId?.brand || ''} {booking.carId?.model || ''}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-text-main font-medium">
+                          {new Date(booking.pickupDate).toLocaleDateString()} - {new Date(booking.dropoffDate).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-text-dim">
+                          {booking.numberOfDays} {booking.numberOfDays === 1 ? 'day' : 'days'} &bull; {booking.pickupTime || ''}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-text-main">${booking.totalRent?.toLocaleString() || '0'}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
+                          {booking.status || 'Pending'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {booking.status === 'Pending' ? (
+                          <div className="flex justify-end gap-1">
+                            <button
+                              onClick={() => handleConfirm(booking._id)}
+                              className="p-2 hover:bg-emerald-50 text-text-dim hover:text-emerald-600 rounded-lg transition-all"
+                              title="Approve"
+                            >
+                              <CheckCircle2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleReject(booking._id)}
+                              className="p-2 hover:bg-red-50 text-text-dim hover:text-red-500 rounded-lg transition-all"
+                              title="Reject"
+                            >
+                              <XCircle size={16} />
+                            </button>
+                          </div>
+                        ) : booking.status === 'Confirmed' ? (
+                          <button
+                            onClick={() => handleComplete(booking._id)}
+                            className="p-2 hover:bg-emerald-50 text-text-dim hover:text-emerald-600 rounded-lg transition-all"
+                            title="Mark Completed"
+                          >
+                            <CheckCircle2 size={16} />
+                          </button>
+                        ) : (
+                          <span className="text-xs text-text-dim">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-bg-dark/50">
+          <p className="text-sm text-text-dim">
+            Showing <span className="font-semibold text-text-main">{filteredBookings.length}</span> of{" "}
+            <span className="font-semibold text-text-main">{bookings.length}</span> bookings
+          </p>
+          <div className="flex gap-2">
+            <button className="px-3 py-1.5 bg-white border border-border rounded text-xs text-text-dim hover:text-text-main disabled:opacity-50 shadow-sm" disabled>Previous</button>
+            <button className="px-3 py-1.5 bg-white border border-border rounded text-xs text-text-dim hover:text-text-main shadow-sm">Next</button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

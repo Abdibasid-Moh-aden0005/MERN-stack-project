@@ -63,7 +63,7 @@ export const addCar = async (req, res) => {
       features: features ? JSON.parse(features) : [],
       description: description ? description.trim() : "",
       addedBy: req.userId,
-      isAvailable: true,
+      status: "Available",
     });
 
     // Save to database
@@ -91,7 +91,11 @@ export const getAllCars = async (req, res) => {
       req.query;
 
     // Build filter object
-    const filter = { isAvailable: true };
+    // const filter = {
+    //   status: { $eq: { $in: ["Available", "Reserved", "Maintainance"] } },
+    // };
+
+    const filter = {};
 
     if (brand) {
       filter.brand = brand;
@@ -198,7 +202,6 @@ export const updateCar = async (req, res) => {
       rentPerDay,
       features,
       description,
-      isAvailable,
       status,
     } = req.body;
 
@@ -225,7 +228,7 @@ export const updateCar = async (req, res) => {
     if (rentPerDay) car.rentPerDay = parseFloat(rentPerDay);
     if (description) car.description = description.trim();
     if (features) car.features = JSON.parse(features);
-    if (isAvailable !== undefined) car.isAvailable = isAvailable;
+    if (status) car.status = status;
 
     const url = "http://localhost:5000";
     // Handle new images if uploaded
