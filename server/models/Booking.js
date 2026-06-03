@@ -24,23 +24,7 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Dropoff date is required"],
     },
-    pickupTime: {
-      type: String, // Format: "HH:MM"
-      required: [true, "Pickup time is required"],
-    },
-    dropoffTime: {
-      type: String, // Format: "HH:MM"
-      required: [true, "Dropoff time is required"],
-    },
-    // Location Details
-    pickupLocation: {
-      type: String,
-      required: [true, "Pickup location is required"],
-    },
-    dropoffLocation: {
-      type: String,
-      required: [true, "Dropoff location is required"],
-    },
+
     // Pricing Information
     numberOfDays: {
       type: Number,
@@ -56,7 +40,7 @@ const bookingSchema = new mongoose.Schema(
       required: [true, "Total rent must be calculated"],
     },
     // Additional Charges
-    additionalCharges: {
+    securityDeposit: {
       type: Number,
       default: 0,
     },
@@ -90,15 +74,7 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    // Insurance
-    insuranceSelected: {
-      type: Boolean,
-      default: false,
-    },
-    insuranceCost: {
-      type: Number,
-      default: 0,
-    },
+
     // Admin Notes
     adminNotes: {
       type: String,
@@ -131,7 +107,7 @@ bookingSchema.index({ status: 1 });
 
 // Virtual for total cost including insurance and additional charges
 bookingSchema.virtual("totalCost").get(function () {
-  return this.totalRent + this.additionalCharges + this.insuranceCost;
+  return this.totalRent + this.securityDeposit;
 });
 
 // Ensure virtuals are included when converting to JSON

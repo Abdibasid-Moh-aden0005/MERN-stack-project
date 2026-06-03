@@ -74,7 +74,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-72 sticky top-0 h-screen bg-bg-sidebar flex flex-col p-6 shadow-2xl z-50">
+    <div className="fixed top-0 left-0 w-72 h-screen bg-bg-sidebar flex flex-col p-6 shadow-2xl z-50">
       {/* Logo */}
       <Link to="/">
         <div className="flex items-center gap-3 mb-12 px-2">

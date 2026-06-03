@@ -3,11 +3,9 @@ import Booking from '../models/Booking.js';
 import Car from '../models/Car.js';
 import User from '../models/User.js';
 import {
-  calculateDays,
   calculateTotalRent,
   checkCarAvailability,
   validateBookingDates,
-  generateBookingReference,
   calculateRefund,
 } from '../utils/bookingUtils.js';
 
@@ -17,32 +15,31 @@ export const createBooking = async (req, res) => {
     const {
       carId,
       pickupDate,
-      dropoffDate,
-      pickupTime,
-      dropoffTime,
-      pickupLocation,
-      dropoffLocation,
+      numberOfDays,
       specialRequirements,
-      insuranceSelected,
       paymentMethod,
     } = req.body;
 
     const userId = req.userId;
 
     // Validate required fields
-    if (!carId || !pickupDate || !dropoffDate || !pickupTime || !dropoffTime || !pickupLocation || !dropoffLocation) {
+    if (!carId || !pickupDate || !numberOfDays) {
       return res.status(400).json({
         success: false,
         message: 'Missing required booking fields',
       });
     }
 
-    // Validate dates and times
-    const dateValidation = validateBookingDates(pickupDate, dropoffDate, pickupTime, dropoffTime);
+    // Derive dropoffDate from pickupDate + numberOfDays
+    const dropoffDate = new Date(pickupDate);
+    dropoffDate.setDate(dropoffDate.getDate() + numberOfDays);
+
+    // Validate dates
+    const dateValidation = validateBookingDates(pickupDate, dropoffDate);
     if (!dateValidation.isValid) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid booking dates or times',
+        message: 'Invalid booking dates',
         errors: dateValidation.errors,
       });
     }
@@ -57,7 +54,7 @@ export const createBooking = async (req, res) => {
     }
 
     // Check car availability
-    const isAvailable = await checkCarAvailability(carId, pickupDate, dropoffDate);
+    const isAvailable = await checkCarAvailability(carId, pickupDate, dropoffDate.toISOString());
     if (!isAvailable) {
       return res.status(400).json({
         success: false,
@@ -66,25 +63,19 @@ export const createBooking = async (req, res) => {
     }
 
     // Calculate rental details
-    const numberOfDays = calculateDays(pickupDate, dropoffDate);
     const totalRent = calculateTotalRent(car.rentPerDay, numberOfDays);
-    const insuranceCost = insuranceSelected ? Math.ceil(totalRent * 0.1) : 0; // 10% insurance cost
+    const securityDeposit = Math.ceil(totalRent * 0.1); // 10% security deposit
 
     // Create booking
     const newBooking = new Booking({
       customerId: userId,
       carId,
       pickupDate: new Date(pickupDate),
-      dropoffDate: new Date(dropoffDate),
-      pickupTime,
-      dropoffTime,
-      pickupLocation: pickupLocation.trim(),
-      dropoffLocation: dropoffLocation.trim(),
+      dropoffDate,
       numberOfDays,
       rentPerDay: car.rentPerDay,
       totalRent,
-      insuranceSelected: insuranceSelected || false,
-      insuranceCost,
+      securityDeposit,
       specialRequirements: specialRequirements ? specialRequirements.trim() : '',
       paymentMethod: paymentMethod || 'Zaad',
       status: 'Pending',
@@ -230,7 +221,7 @@ export const cancelBooking = async (req, res) => {
     }
 
     // Calculate refund
-    const refund = calculateRefund(booking.totalRent, booking.insuranceCost, booking.additionalCharges, booking.pickupDate);
+    const refund = calculateRefund(booking.totalRent, booking.pickupDate);
 
     // Update booking
     booking.status = 'Cancelled';

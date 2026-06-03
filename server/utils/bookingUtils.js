@@ -51,7 +51,7 @@ export const checkCarAvailability = async (carId, pickupDate, dropoffDate, exclu
 };
 
 // Validate booking dates
-export const validateBookingDates = (pickupDate, dropoffDate, pickupTime, dropoffTime) => {
+export const validateBookingDates = (pickupDate, dropoffDate) => {
   const errors = [];
 
   const pickup = new Date(pickupDate);
@@ -69,15 +69,6 @@ export const validateBookingDates = (pickupDate, dropoffDate, pickupTime, dropof
     errors.push('Dropoff date must be after pickup date');
   }
 
-  // Validate time format (HH:MM)
-  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-  if (!timeRegex.test(pickupTime)) {
-    errors.push('Invalid pickup time format (use HH:MM)');
-  }
-  if (!timeRegex.test(dropoffTime)) {
-    errors.push('Invalid dropoff time format (use HH:MM)');
-  }
-
   return {
     isValid: errors.length === 0,
     errors,
@@ -92,7 +83,7 @@ export const generateBookingReference = () => {
 };
 
 // Calculate refund amount based on cancellation time
-export const calculateRefund = (totalRent, insuranceCost, additionalCharges, pickupDate) => {
+export const calculateRefund = (totalRent, pickupDate) => {
   const pickup = new Date(pickupDate);
   const today = new Date();
   const hoursUntilPickup = (pickup - today) / (1000 * 60 * 60);
@@ -116,7 +107,6 @@ export const calculateRefund = (totalRent, insuranceCost, additionalCharges, pic
     refundPercentage = 0;
   }
 
-  // Calculate refund (full amount minus insurance cost)
   const refundAmount = (totalRent * refundPercentage) / 100;
   return {
     amount: refundAmount,

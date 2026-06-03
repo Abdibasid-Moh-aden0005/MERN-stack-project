@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useCarStore from "../../store/zustand/cars";
+import useBookingStore from "../../store/zustand/Bookings";
 import {
   Users,
   Fuel,
@@ -11,9 +12,10 @@ import {
   Gauge,
   Zap,
   Timer,
-  ChevronRight,
   Star,
   MapPin,
+  Minus,
+  Plus,
 } from "lucide-react";
 import Button from "../common/Button";
 
@@ -22,6 +24,8 @@ const CarDetails = () => {
   const navigate = useNavigate();
   const { selectedCar, loading, error } = useCarStore();
   const fetchCarDetails = useCarStore((state) => state.fetchCarDetails);
+  const createNewBooking = useBookingStore((state) => state.createNewBooking);
+  const bookingLoading = useBookingStore((state) => state.loading);
 
   useEffect(() => {
     fetchCarDetails(id);
@@ -34,6 +38,32 @@ const CarDetails = () => {
   };
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [pickupDate, setPickupDate] = useState("");
+  const [numberOfDays, setNumberOfDays] = useState(1);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const computedDropoffDate = pickupDate
+    ? new Date(new Date(pickupDate).getTime() + numberOfDays * 86400000)
+        .toISOString()
+        .split("T")[0]
+    : "";
+
+  const totalRent = selectedCar?.rentPerDay
+    ? selectedCar.rentPerDay * numberOfDays
+    : 0;
+  const securityDeposit = Math.ceil(totalRent * 0.1);
+  const grandTotal = totalRent + securityDeposit;
+
+  const handleReserve = async () => {
+    if (!pickupDate) return;
+    try {
+      await createNewBooking({ carId: id, pickupDate, numberOfDays });
+      navigate("/my-bookings");
+    } catch (err) {
+      console.error("Booking failed:", err);
+    }
+  };
 
   if (loading) {
     return (
@@ -46,8 +76,12 @@ const CarDetails = () => {
   if (error || !selectedCar) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
-        <p className="text-red-500 text-lg font-semibold">{error || "Car not found"}</p>
-        <button onClick={() => navigate(-1)} className="btn-secondary">Go Back</button>
+        <p className="text-red-500 text-lg font-semibold">
+          {error || "Car not found"}
+        </p>
+        <button onClick={() => navigate(-1)} className="btn-secondary">
+          Go Back
+        </button>
       </div>
     );
   }
@@ -56,7 +90,8 @@ const CarDetails = () => {
     ? getImageUrl(selectedCar.images[selectedImage])
     : getImageUrl(null);
 
-  const allImages = selectedCar.images?.length > 0 ? selectedCar.images : [null];
+  const allImages =
+    selectedCar.images?.length > 0 ? selectedCar.images : [null];
 
   const specsCards = [
     { label: "Top Speed", value: "191 MPH", icon: Gauge },
@@ -79,7 +114,7 @@ const CarDetails = () => {
         {/* Left: Images & Specs */}
         <div className="lg:col-span-7 space-y-6">
           {/* Main Image */}
-          <div className="rounded-xl overflow-hidden border border-border bg-white shadow-sm aspect-[16/10]">
+          <div className="rounded-xl overflow-hidden border border-border bg-white shadow-sm aspect-16/10">
             <img
               src={mainImage}
               alt={selectedCar.name}
@@ -95,7 +130,9 @@ const CarDetails = () => {
                   key={index}
                   onClick={() => setSelectedImage(index)}
                   className={`rounded-lg overflow-hidden border-2 aspect-video transition-all ${
-                    selectedImage === index ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
+                    selectedImage === index
+                      ? "border-primary ring-1 ring-primary"
+                      : "border-border hover:border-primary/50"
                   }`}
                 >
                   <img
@@ -111,59 +148,78 @@ const CarDetails = () => {
           {/* Specs Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {specsCards.map((spec, idx) => (
-              <div key={idx} className="bg-white border border-border rounded-xl p-4 text-center shadow-sm">
+              <div
+                key={idx}
+                className="bg-white border border-border rounded-xl p-4 text-center shadow-sm"
+              >
                 <spec.icon size={20} className="text-primary mx-auto mb-2" />
                 <p className="text-lg font-bold text-text-main">{spec.value}</p>
-                <p className="text-xs text-text-dim font-medium">{spec.label}</p>
+                <p className="text-xs text-text-dim font-medium">
+                  {spec.label}
+                </p>
               </div>
             ))}
           </div>
 
           {/* Vehicle Specifications */}
           <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-4">Vehicle Specifications</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-4">
+              Vehicle Specifications
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between py-2.5 border-b border-border/60">
                 <div className="flex items-center gap-2 text-sm text-text-dim">
                   <Settings size={14} className="text-primary/70" />
                   <span>Transmission</span>
                 </div>
-                <span className="text-sm font-semibold text-text-main">{selectedCar.transmission}</span>
+                <span className="text-sm font-semibold text-text-main">
+                  {selectedCar.transmission}
+                </span>
               </div>
               <div className="flex items-center justify-between py-2.5 border-b border-border/60">
                 <div className="flex items-center gap-2 text-sm text-text-dim">
                   <Fuel size={14} className="text-primary/70" />
                   <span>Fuel Type</span>
                 </div>
-                <span className="text-sm font-semibold text-text-main">{selectedCar.fuelType}</span>
+                <span className="text-sm font-semibold text-text-main">
+                  {selectedCar.fuelType}
+                </span>
               </div>
               <div className="flex items-center justify-between py-2.5 border-b border-border/60">
                 <div className="flex items-center gap-2 text-sm text-text-dim">
                   <Users size={14} className="text-primary/70" />
                   <span>Seating</span>
                 </div>
-                <span className="text-sm font-semibold text-text-main">{selectedCar.seatingCapacity}</span>
+                <span className="text-sm font-semibold text-text-main">
+                  {selectedCar.seatingCapacity}
+                </span>
               </div>
               <div className="flex items-center justify-between py-2.5 border-b border-border/60">
                 <div className="flex items-center gap-2 text-sm text-text-dim">
                   <Gauge size={14} className="text-primary/70" />
                   <span>Mileage</span>
                 </div>
-                <span className="text-sm font-semibold text-text-main">{selectedCar.mileage} km/l</span>
+                <span className="text-sm font-semibold text-text-main">
+                  {selectedCar.mileage} km/l
+                </span>
               </div>
               <div className="flex items-center justify-between py-2.5 border-b border-border/60">
                 <div className="flex items-center gap-2 text-sm text-text-dim">
                   <span className="w-3 h-3 rounded bg-primary/70" />
                   <span>Color</span>
                 </div>
-                <span className="text-sm font-semibold text-text-main">{selectedCar.color}</span>
+                <span className="text-sm font-semibold text-text-main">
+                  {selectedCar.color}
+                </span>
               </div>
               <div className="flex items-center justify-between py-2.5 border-b border-border/60">
                 <div className="flex items-center gap-2 text-sm text-text-dim">
                   <Calendar size={14} className="text-primary/70" />
                   <span>Year</span>
                 </div>
-                <span className="text-sm font-semibold text-text-main">{selectedCar.year}</span>
+                <span className="text-sm font-semibold text-text-main">
+                  {selectedCar.year}
+                </span>
               </div>
             </div>
           </div>
@@ -171,18 +227,27 @@ const CarDetails = () => {
           {/* Description */}
           {selectedCar.description && (
             <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-3">Description</h3>
-              <p className="text-sm text-text-main leading-relaxed">{selectedCar.description}</p>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-3">
+                Description
+              </h3>
+              <p className="text-sm text-text-main leading-relaxed">
+                {selectedCar.description}
+              </p>
             </div>
           )}
 
           {/* Features */}
           {selectedCar.features?.length > 0 && (
             <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-3">Key Features</h3>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim mb-3">
+                Key Features
+              </h3>
               <div className="grid grid-cols-2 gap-3">
                 {selectedCar.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-center text-sm text-text-main">
+                  <div
+                    key={idx}
+                    className="flex items-center text-sm text-text-main"
+                  >
                     <Check size={16} className="text-primary mr-2 shrink-0" />
                     <span>{feature}</span>
                   </div>
@@ -203,7 +268,9 @@ const CarDetails = () => {
 
             {/* Car Title */}
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-text-main leading-tight">{selectedCar.name}</h1>
+              <h1 className="text-2xl font-bold text-text-main leading-tight">
+                {selectedCar.name}
+              </h1>
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex items-center text-amber-400">
                   {[...Array(5)].map((_, i) => (
@@ -220,7 +287,9 @@ const CarDetails = () => {
 
             {/* Price */}
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-3xl font-black text-primary">${selectedCar.rentPerDay}</span>
+              <span className="text-3xl font-black text-primary">
+                ${selectedCar.rentPerDay}
+              </span>
               <span className="text-text-dim text-sm">/ DAY</span>
             </div>
 
@@ -228,79 +297,134 @@ const CarDetails = () => {
             <div className="grid grid-cols-3 gap-3 mb-6">
               <div className="flex flex-col items-center p-3 rounded-lg bg-bg-dark border border-border">
                 <Users size={16} className="text-text-dim mb-1" />
-                <span className="text-xs font-semibold text-text-main">{selectedCar.seatingCapacity} Seats</span>
+                <span className="text-xs font-semibold text-text-main">
+                  {selectedCar.seatingCapacity} Seats
+                </span>
               </div>
               <div className="flex flex-col items-center p-3 rounded-lg bg-bg-dark border border-border">
                 <Fuel size={16} className="text-text-dim mb-1" />
-                <span className="text-xs font-semibold text-text-main truncate">{selectedCar.fuelType}</span>
+                <span className="text-xs font-semibold text-text-main truncate">
+                  {selectedCar.fuelType}
+                </span>
               </div>
               <div className="flex flex-col items-center p-3 rounded-lg bg-bg-dark border border-border">
                 <Settings size={16} className="text-text-dim mb-1" />
-                <span className="text-xs font-semibold text-text-main">{selectedCar.transmission === "Automatic" ? "Auto" : "Manual"}</span>
+                <span className="text-xs font-semibold text-text-main">
+                  {selectedCar.transmission === "Automatic" ? "Auto" : "Manual"}
+                </span>
               </div>
             </div>
 
             {/* Booking Section */}
             <div className="space-y-4 border-t border-border pt-6">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim">Booking Details</h3>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-text-dim">
+                Booking Details
+              </h3>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-dim uppercase tracking-widest">Pick-up Date</label>
-                  <div className="flex items-center gap-2 px-3 py-2.5 bg-bg-dark border border-border rounded-lg text-sm text-text-main">
-                    <Calendar size={14} className="text-text-dim" />
-                    <span className="text-text-dim">Select date</span>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-dim uppercase tracking-widest">Return Date</label>
-                  <div className="flex items-center gap-2 px-3 py-2.5 bg-bg-dark border border-border rounded-lg text-sm text-text-main">
-                    <Calendar size={14} className="text-text-dim" />
-                    <span className="text-text-dim">Select date</span>
-                  </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-dim uppercase tracking-widest">
+                  Pick-up Date
+                </label>
+                <input
+                  type="date"
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
+                  min={today}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 bg-bg-dark border border-border rounded-lg text-sm text-text-main focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-dim uppercase tracking-widest">
+                  Rental Days
+                </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setNumberOfDays(Math.max(1, numberOfDays - 1))}
+                    className="w-10 h-10 flex items-center justify-center bg-bg-dark border border-border rounded-lg text-text-dim hover:text-primary hover:border-primary transition-colors"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <span className="flex-1 text-center text-lg font-bold text-text-main">
+                    {numberOfDays}
+                  </span>
+                  <button
+                    onClick={() => setNumberOfDays(numberOfDays + 1)}
+                    className="w-10 h-10 flex items-center justify-center bg-bg-dark border border-border rounded-lg text-text-dim hover:text-primary hover:border-primary transition-colors"
+                  >
+                    <Plus size={16} />
+                  </button>
                 </div>
               </div>
+
+              {pickupDate && (
+                <div className="flex items-center gap-2 text-sm text-text-dim">
+                  <Calendar size={14} />
+                  <span>
+                    Return: <strong className="text-text-main">{computedDropoffDate}</strong>
+                  </span>
+                </div>
+              )}
 
               {/* Pricing Breakdown */}
               <div className="space-y-2 bg-bg-dark rounded-lg p-4 border border-border">
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-dim">${selectedCar.rentPerDay} x 3 Days</span>
-                  <span className="font-medium text-text-main">${selectedCar.rentPerDay * 3}</span>
+                  <span className="text-text-dim">
+                    ${selectedCar.rentPerDay} x {numberOfDays} {numberOfDays === 1 ? "Day" : "Days"}
+                  </span>
+                  <span className="font-medium text-text-main">
+                    ${totalRent}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-dim">Insurance Premium</span>
-                  <span className="font-medium text-text-main">$0.00</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-dim">Service Fee</span>
-                  <span className="font-medium text-text-main">$0.00</span>
+                  <span className="text-text-dim">Security Deposit (10%)</span>
+                  <span className="font-medium text-text-main">${securityDeposit}</span>
                 </div>
                 <div className="border-t border-border pt-2 mt-2 flex justify-between">
                   <span className="font-bold text-text-main">Total Amount</span>
-                  <span className="font-bold text-primary">${selectedCar.rentPerDay * 3}</span>
+                  <span className="font-bold text-primary">
+                    ${grandTotal}
+                  </span>
                 </div>
               </div>
 
-              <Button className="w-full py-3 text-base shadow-lg shadow-primary/20">
+              <Button
+                onClick={handleReserve}
+                disabled={!pickupDate || bookingLoading}
+                className="w-full py-3 text-base shadow-lg shadow-primary/20"
+              >
                 <Check size={18} />
-                Reserve Now
+                {bookingLoading ? "Booking..." : "Reserve Now"}
               </Button>
-              <p className="text-xs text-text-dim text-center">Free cancellation up to 24 hours before pick-up.</p>
+              <p className="text-xs text-text-dim text-center">
+                Free cancellation up to 24 hours before pick-up.
+              </p>
             </div>
 
             {/* Status Badge */}
-            <div className={`mt-6 p-3 rounded-lg border text-sm font-medium flex items-center gap-2 ${
-              selectedCar.status === "Available"
-                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+            <div
+              className={`mt-6 p-3 rounded-lg border text-sm font-medium flex items-center gap-2 ${
+                selectedCar.status === "Available"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : selectedCar.status === "Reserved"
+                    ? "bg-blue-50 border-blue-200 text-blue-700"
+                    : "bg-orange-50 border-orange-200 text-orange-700"
+              }`}
+            >
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  selectedCar.status === "Available"
+                    ? "bg-emerald-500"
+                    : selectedCar.status === "Reserved"
+                      ? "bg-blue-500"
+                      : "bg-orange-500"
+                }`}
+              />
+              {selectedCar.status === "Available"
+                ? "This vehicle is currently available for booking"
                 : selectedCar.status === "Reserved"
-                  ? "bg-blue-50 border-blue-200 text-blue-700"
-                  : "bg-orange-50 border-orange-200 text-orange-700"
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${
-                selectedCar.status === "Available" ? "bg-emerald-500" : selectedCar.status === "Reserved" ? "bg-blue-500" : "bg-orange-500"
-              }`} />
-              {selectedCar.status === "Available" ? "This vehicle is currently available for booking" : 
-               selectedCar.status === "Reserved" ? "This vehicle is currently reserved" : "This vehicle is in maintenance"}
+                  ? "This vehicle is currently reserved"
+                  : "This vehicle is in maintenance"}
             </div>
           </div>
         </div>

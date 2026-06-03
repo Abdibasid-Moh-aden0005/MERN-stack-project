@@ -245,7 +245,7 @@ const AdminBookings = () => {
                           {new Date(booking.pickupDate).toLocaleDateString()} - {new Date(booking.dropoffDate).toLocaleDateString()}
                         </div>
                         <div className="text-xs text-text-dim">
-                          {booking.numberOfDays} {booking.numberOfDays === 1 ? 'day' : 'days'} &bull; {booking.pickupTime || ''}
+                          {booking.numberOfDays} {booking.numberOfDays === 1 ? 'day' : 'days'}
                         </div>
                       </td>
                       <td className="px-6 py-4">
