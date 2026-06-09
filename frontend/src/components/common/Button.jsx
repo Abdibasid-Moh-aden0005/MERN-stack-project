@@ -6,6 +6,7 @@ const Button = ({
   variant = 'primary', 
   size = 'md', 
   loading = false, 
+  disabled = false,
   icon: Icon,
   ...props 
 }) => {
@@ -29,7 +30,7 @@ const Button = ({
   return (
     <button
       className={combinedClasses}
-      disabled={loading}
+      disabled={loading || disabled}
       {...props}
     >
       {loading ? (

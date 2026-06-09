@@ -56,7 +56,7 @@ const CarDetails = () => {
   const grandTotal = totalRent + securityDeposit;
 
   const handleReserve = async () => {
-    if (!pickupDate) return;
+    if (!pickupDate || selectedCar.status !== "Available") return;
     try {
       await createNewBooking({ carId: id, pickupDate, numberOfDays });
       navigate("/my-bookings");
@@ -340,7 +340,9 @@ const CarDetails = () => {
                 </label>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setNumberOfDays(Math.max(1, numberOfDays - 1))}
+                    onClick={() =>
+                      setNumberOfDays(Math.max(1, numberOfDays - 1))
+                    }
                     className="w-10 h-10 flex items-center justify-center bg-bg-dark border border-border rounded-lg text-text-dim hover:text-primary hover:border-primary transition-colors"
                   >
                     <Minus size={16} />
@@ -361,7 +363,10 @@ const CarDetails = () => {
                 <div className="flex items-center gap-2 text-sm text-text-dim">
                   <Calendar size={14} />
                   <span>
-                    Return: <strong className="text-text-main">{computedDropoffDate}</strong>
+                    Return:{" "}
+                    <strong className="text-text-main">
+                      {computedDropoffDate}
+                    </strong>
                   </span>
                 </div>
               )}
@@ -370,7 +375,8 @@ const CarDetails = () => {
               <div className="space-y-2 bg-bg-dark rounded-lg p-4 border border-border">
                 <div className="flex justify-between text-sm">
                   <span className="text-text-dim">
-                    ${selectedCar.rentPerDay} x {numberOfDays} {numberOfDays === 1 ? "Day" : "Days"}
+                    ${selectedCar.rentPerDay} x {numberOfDays}{" "}
+                    {numberOfDays === 1 ? "Day" : "Days"}
                   </span>
                   <span className="font-medium text-text-main">
                     ${totalRent}
@@ -378,19 +384,23 @@ const CarDetails = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-dim">Security Deposit (10%)</span>
-                  <span className="font-medium text-text-main">${securityDeposit}</span>
+                  <span className="font-medium text-text-main">
+                    ${securityDeposit}
+                  </span>
                 </div>
                 <div className="border-t border-border pt-2 mt-2 flex justify-between">
                   <span className="font-bold text-text-main">Total Amount</span>
-                  <span className="font-bold text-primary">
-                    ${grandTotal}
-                  </span>
+                  <span className="font-bold text-primary">${grandTotal}</span>
                 </div>
               </div>
 
               <Button
                 onClick={handleReserve}
-                disabled={!pickupDate || bookingLoading}
+                disabled={
+                  !pickupDate ||
+                  bookingLoading ||
+                  selectedCar.status !== "Available"
+                }
                 className="w-full py-3 text-base shadow-lg shadow-primary/20"
               >
                 <Check size={18} />

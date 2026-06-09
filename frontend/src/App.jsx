@@ -42,7 +42,7 @@ function AppContent() {
       {/* Show sidebar for all logged in users, but Sidebar component handles internal role-based filtering */}
       {!isAuthPage && isAuthenticated && <Sidebar />}
       
-      <main className="w-full overflow-y-auto">
+      <main className="w-full overflow-y-auto ml-72">
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
