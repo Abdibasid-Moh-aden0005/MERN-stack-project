@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useCarStore from "../../store/zustand/cars";
 import useBookingStore from "../../store/zustand/Bookings";
@@ -18,6 +18,7 @@ import {
   Plus,
 } from "lucide-react";
 import Button from "../common/Button";
+import { toast } from "react-toastify";
 
 const CarDetails = () => {
   const { id } = useParams();
@@ -59,9 +60,11 @@ const CarDetails = () => {
     if (!pickupDate || selectedCar.status !== "Available") return;
     try {
       await createNewBooking({ carId: id, pickupDate, numberOfDays });
+      toast.success("Booking created successfully");
       navigate("/my-bookings");
     } catch (err) {
       console.error("Booking failed:", err);
+      toast.error(err.message || "Failed to create booking");
     }
   };
 

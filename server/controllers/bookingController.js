@@ -7,6 +7,8 @@ import {
   checkCarAvailability,
   validateBookingDates,
   calculateRefund,
+  calculateSecurityDeposit,
+  calculateTotalAmount,
 } from '../utils/bookingUtils.js';
 
 // Create new booking
@@ -64,7 +66,7 @@ export const createBooking = async (req, res) => {
 
     // Calculate rental details
     const totalRent = calculateTotalRent(car.rentPerDay, numberOfDays);
-    const securityDeposit = Math.ceil(totalRent * 0.1); // 10% security deposit
+    const securityDeposit = calculateSecurityDeposit(totalRent);
 
     // Create booking
     const newBooking = new Booking({
@@ -221,7 +223,8 @@ export const cancelBooking = async (req, res) => {
     }
 
     // Calculate refund
-    const refund = calculateRefund(booking.totalRent, booking.pickupDate);
+    const totalAmount = calculateTotalAmount(booking.totalRent, booking.securityDeposit);
+    const refund = calculateRefund(totalAmount, booking.pickupDate);
 
     // Update booking
     booking.status = 'Cancelled';
@@ -234,11 +237,12 @@ export const cancelBooking = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Booking cancelled successfully',
+      message: `Booking cancelled successfully. Refund: $${refund.amount} (${refund.percentage}%).`,
       booking,
       refund: {
         amount: refund.amount,
         percentage: refund.percentage,
+        totalAmount,
       },
     });
   } catch (error) {

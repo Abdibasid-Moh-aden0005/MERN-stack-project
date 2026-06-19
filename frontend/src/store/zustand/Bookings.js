@@ -6,9 +6,10 @@ import { create } from "zustand";
 const API_ROOT = "http://localhost:5000/api";
 
 const parseJSON = async (response) => {
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data?.message || "Request failed");
+    const details = Array.isArray(data?.errors) ? `: ${data.errors.join(", ")}` : "";
+    throw new Error(`${data?.message || "Request failed"}${details}`);
   }
   return data;
 };
@@ -34,7 +35,7 @@ const getToken = () => localStorage.getItem("token");
      - updateBookingStatus({id, …})   → PUT /admin/bookings/:id/status
      - resetBookingState()            → reset transient fields
    ─────────────────────────────────────────────── */
-const useBookingStore = create((set, get) => ({
+const useBookingStore = create((set) => ({
   /* ── State ────────────────────────────────── */
   bookings: [],
   currentBooking: null,
@@ -126,7 +127,7 @@ const useBookingStore = create((set, get) => ({
           b._id === updated._id ? updated : b,
         ),
       }));
-      return updated;
+      return { booking: updated, refund: data.refund, message: data.message };
     } catch (error) {
       set({ loading: false, error: error.message });
       throw error;
@@ -151,7 +152,7 @@ const useBookingStore = create((set, get) => ({
   },
 
   /** Admin: update a booking's status */
-  updateBookingStatus: async ({ id, status }) => {
+  updateBookingStatus: async ({ id, status, adminNotes }) => {
     set({ loading: true, error: null });
     try {
       const response = await fetch(`${API_ROOT}/admin/bookings/${id}/status`, {
@@ -160,7 +161,7 @@ const useBookingStore = create((set, get) => ({
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, adminNotes }),
       });
       const data = await parseJSON(response);
       const updated = data.booking || data.data;
@@ -170,7 +171,7 @@ const useBookingStore = create((set, get) => ({
           b._id === updated._id ? updated : b,
         ),
       }));
-      return updated;
+      return { booking: updated, message: data.message };
     } catch (error) {
       set({ loading: false, error: error.message });
       throw error;

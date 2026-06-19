@@ -1,20 +1,69 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Modal from "react-modal";
 import {
   Calendar,
   CheckCircle,
   ChevronRight,
   Package,
   Shield,
+  XCircle,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import useBookingStore from "../../store/zustand/Bookings";
 
+Modal.setAppElement("#root");
+
 const MyBookings = () => {
+  const navigate = useNavigate();
   const { bookings, loading } = useBookingStore();
   const fetchMyBookings = useBookingStore((state) => state.fetchMyBookings);
+  const cancelBooking = useBookingStore((state) => state.cancelBooking);
+  const [bookingToCancel, setBookingToCancel] = useState(null);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [reasonError, setReasonError] = useState("");
 
   useEffect(() => {
     fetchMyBookings();
   }, [fetchMyBookings]);
+
+  const getTotalAmount = (booking) =>
+    (booking.totalRent || 0) + (booking.securityDeposit || 0);
+
+  const canCancel = (booking) =>
+    !["completed", "cancelled"].includes(booking.status?.toLowerCase());
+
+  const openCancelModal = (booking) => {
+    setBookingToCancel(booking);
+    setCancellationReason("");
+    setReasonError("");
+  };
+
+  const closeCancelModal = () => {
+    if (loading) return;
+    setBookingToCancel(null);
+    setCancellationReason("");
+    setReasonError("");
+  };
+
+  const handleCancel = async () => {
+    const reason = cancellationReason.trim();
+    if (!reason) {
+      setReasonError("Please write a cancellation reason.");
+      return;
+    }
+
+    try {
+      const result = await cancelBooking({
+        id: bookingToCancel._id,
+        reason,
+      });
+      toast.success(result.message || "Booking cancelled successfully");
+      closeCancelModal();
+    } catch (err) {
+      toast.error(err.message || "Failed to cancel booking");
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -62,7 +111,10 @@ const MyBookings = () => {
               You haven't made any reservations yet. Ready to experience the
               ultimate drive?
             </p>
-            <button className="btn-primary px-10 py-4 font-black text-sm uppercase tracking-widest rounded shadow-xl shadow-primary/20 hover:scale-105 transition-all">
+            <button
+              onClick={() => navigate("/")}
+              className="btn-primary px-10 py-4 font-black text-sm uppercase tracking-widest rounded shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+            >
               Explore Our Fleet
             </button>
           </div>
@@ -151,6 +203,19 @@ const MyBookings = () => {
                           </div>
                         </div>
                       </div>
+                      {booking.status === "Cancelled" && (
+                        <div className="rounded border border-red-100 bg-red-50 px-4 py-3 text-sm">
+                          <p className="text-[10px] uppercase font-black text-red-500 tracking-widest mb-1">
+                            Cancellation
+                          </p>
+                          <p className="font-semibold text-red-800">
+                            {booking.cancellationReason || "No reason provided"}
+                          </p>
+                          <p className="mt-1 text-red-700">
+                            Refund: ${booking.refundAmount || 0}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -167,20 +232,32 @@ const MyBookings = () => {
                       </div>
                       <div>
                         <p className="text-[10px] uppercase font-black text-text-dim tracking-widest mb-1">
-                          Total Paid
+                          Total Amount
                         </p>
                         <p className="text-3xl font-black text-primary">
-                          ${booking.totalRent}
+                          ${getTotalAmount(booking)}
                         </p>
                       </div>
                     </div>
-                    <button className="flex items-center gap-2 text-sm font-black text-primary hover:text-emerald-600 transition-colors group/btn uppercase tracking-widest">
-                      Reservation Details{" "}
-                      <ChevronRight
-                        size={18}
-                        className="group-hover/btn:translate-x-1 transition-transform"
-                      />
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {canCancel(booking) && (
+                        <button
+                          onClick={() => openCancelModal(booking)}
+                          disabled={loading}
+                          className="flex items-center gap-2 px-4 py-2 rounded border border-red-200 bg-red-50 text-sm font-black text-red-700 hover:bg-red-100 disabled:opacity-50 transition-colors uppercase tracking-widest"
+                        >
+                          <XCircle size={16} />
+                          Cancel
+                        </button>
+                      )}
+                      <button className="flex items-center gap-2 text-sm font-black text-primary hover:text-emerald-600 transition-colors group/btn uppercase tracking-widest">
+                        Reservation Details{" "}
+                        <ChevronRight
+                          size={18}
+                          className="group-hover/btn:translate-x-1 transition-transform"
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -188,6 +265,70 @@ const MyBookings = () => {
           ))
         )}
       </div>
+
+      <Modal
+        isOpen={Boolean(bookingToCancel)}
+        onRequestClose={closeCancelModal}
+        className="w-[min(92vw,520px)] rounded-lg bg-white border border-border shadow-2xl outline-none"
+        overlayClassName="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      >
+        <div className="p-6">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded bg-red-50 text-red-600 border border-red-100">
+              <XCircle size={20} />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-text-main">
+                Cancel Booking
+              </h2>
+              <p className="mt-1 text-sm text-text-dim">
+                {bookingToCancel?.carId?.name || "Vehicle"} from{" "}
+                {bookingToCancel
+                  ? new Date(bookingToCancel.pickupDate).toLocaleDateString()
+                  : ""}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-text-dim">
+              Cancellation Reason
+            </label>
+            <textarea
+              value={cancellationReason}
+              onChange={(e) => {
+                setCancellationReason(e.target.value);
+                if (reasonError) setReasonError("");
+              }}
+              rows={4}
+              className="w-full resize-none rounded border border-border bg-bg-dark px-4 py-3 text-sm text-text-main outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="Write the reason for cancelling this booking..."
+            />
+            {reasonError && (
+              <p className="text-sm font-semibold text-red-600">
+                {reasonError}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <button
+              onClick={closeCancelModal}
+              disabled={loading}
+              className="px-5 py-2.5 rounded border border-border text-sm font-black uppercase tracking-widest text-text-dim hover:text-text-main disabled:opacity-50"
+            >
+              Keep Booking
+            </button>
+            <button
+              onClick={handleCancel}
+              disabled={loading}
+              className="px-5 py-2.5 rounded bg-red-600 text-sm font-black uppercase tracking-widest text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {loading ? "Cancelling..." : "Confirm Cancel"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

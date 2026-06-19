@@ -2,6 +2,7 @@
 import Booking from '../models/Booking.js';
 import Car from '../models/Car.js';
 import User from '../models/User.js';
+import { calculateRefund, calculateTotalAmount } from '../utils/bookingUtils.js';
 
 // Get all bookings (Admin only)
 export const getAllBookings = async (req, res) => {
@@ -25,7 +26,7 @@ export const getAllBookings = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const bookings = await Booking.find(filter)
-      .populate('carId', 'name brand model rentPerDay')
+      .populate('carId', 'name brand model rentPerDay images')
       .populate('customerId', 'firstName lastName email phone')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -78,16 +79,40 @@ export const updateBookingStatus = async (req, res) => {
       });
     }
 
-    // Update status
+    const adminReason = adminNotes?.trim();
+
+    if (status === 'Cancelled' && booking.status !== 'Cancelled' && !adminReason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cancellation reason is required when admin cancels a booking',
+      });
+    }
+
+    if (['Completed', 'Cancelled'].includes(booking.status) && booking.status !== status) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot change a ${booking.status.toLowerCase()} booking`,
+      });
+    }
+
     booking.status = status;
-    if (adminNotes) {
-      booking.adminNotes = adminNotes.trim();
+    if (adminReason) {
+      booking.adminNotes = adminReason;
+    }
+    if (status === 'Cancelled') {
+      const totalAmount = calculateTotalAmount(booking.totalRent, booking.securityDeposit);
+      const refund = calculateRefund(totalAmount, booking.pickupDate);
+
+      booking.cancelledAt = booking.cancelledAt || new Date();
+      booking.cancellationReason = adminReason || booking.cancellationReason || 'Cancelled by admin';
+      booking.refundAmount = refund.amount;
+      booking.paymentStatus = 'Pending';
     }
     booking.updatedAt = Date.now();
 
     await booking.save();
 
-    await booking.populate('carId', 'name brand');
+    await booking.populate('carId', 'name brand model rentPerDay images');
     await booking.populate('customerId', 'firstName lastName email');
 
     res.status(200).json({

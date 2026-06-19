@@ -1,22 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import Modal from 'react-modal';
 import {
-  Calendar,
-  User,
   CheckCircle,
   Clock,
-  Filter,
   Search,
   CheckCircle2,
-  AlertCircle,
   XCircle,
   DollarSign,
   TrendingUp,
   Receipt,
-  Eye,
 } from 'lucide-react';
 import useBookingStore from '../../store/zustand/Bookings';
-import Button from '../../components/common/Button';
 import { toast } from 'react-toastify';
+
+Modal.setAppElement("#root");
 
 const statusConfig = {
   Pending: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
@@ -37,6 +34,9 @@ const AdminBookings = () => {
   const updateBookingStatus = useBookingStore((state) => state.updateBookingStatus);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [bookingToReject, setBookingToReject] = useState(null);
+  const [adminReason, setAdminReason] = useState('');
+  const [reasonError, setReasonError] = useState('');
 
   useEffect(() => {
     fetchAllBookings();
@@ -60,12 +60,36 @@ const AdminBookings = () => {
     }
   };
 
-  const handleReject = async (id) => {
+  const openRejectModal = (booking) => {
+    setBookingToReject(booking);
+    setAdminReason('');
+    setReasonError('');
+  };
+
+  const closeRejectModal = () => {
+    if (loading) return;
+    setBookingToReject(null);
+    setAdminReason('');
+    setReasonError('');
+  };
+
+  const handleReject = async () => {
+    const reason = adminReason.trim();
+    if (!reason) {
+      setReasonError('Please write the cancellation reason.');
+      return;
+    }
+
     try {
-      await updateBookingStatus({ id, status: 'Cancelled' });
-      toast.success("Booking cancelled");
+      const result = await updateBookingStatus({
+        id: bookingToReject._id,
+        status: 'Cancelled',
+        adminNotes: reason,
+      });
+      toast.success(result.message || "Booking cancelled");
+      closeRejectModal();
     } catch (err) {
-      toast.error(err || "Failed to cancel booking");
+      toast.error(err.message || "Failed to cancel booking");
     }
   };
 
@@ -81,7 +105,8 @@ const AdminBookings = () => {
   const pendingBookings = bookings.filter((b) => b.status === 'Pending').length;
   const confirmedBookings = bookings.filter((b) => b.status === 'Confirmed').length;
   const completedBookings = bookings.filter((b) => b.status === 'Completed').length;
-  const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalRent || 0), 0);
+  const getTotalAmount = (booking) => (booking.totalRent || 0) + (booking.securityDeposit || 0);
+  const totalRevenue = bookings.reduce((sum, b) => sum + getTotalAmount(b), 0);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
@@ -249,13 +274,21 @@ const AdminBookings = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-bold text-text-main">${booking.totalRent?.toLocaleString() || '0'}</span>
+                        <span className="font-bold text-text-main">${getTotalAmount(booking).toLocaleString()}</span>
+                        <div className="text-xs text-text-dim">
+                          Rent ${booking.totalRent?.toLocaleString() || '0'} + Deposit ${booking.securityDeposit?.toLocaleString() || '0'}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
                           {booking.status || 'Pending'}
                         </div>
+                        {booking.status === 'Cancelled' && booking.cancellationReason && (
+                          <p className="mt-1 max-w-48 text-xs text-red-600 truncate" title={booking.cancellationReason}>
+                            {booking.cancellationReason}
+                          </p>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         {booking.status === 'Pending' ? (
@@ -268,7 +301,7 @@ const AdminBookings = () => {
                               <CheckCircle2 size={16} />
                             </button>
                             <button
-                              onClick={() => handleReject(booking._id)}
+                              onClick={() => openRejectModal(booking)}
                               className="p-2 hover:bg-red-50 text-text-dim hover:text-red-500 rounded-lg transition-all"
                               title="Reject"
                             >
@@ -305,6 +338,68 @@ const AdminBookings = () => {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={Boolean(bookingToReject)}
+        onRequestClose={closeRejectModal}
+        className="w-[min(92vw,520px)] rounded-lg bg-white border border-border shadow-2xl outline-none"
+        overlayClassName="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      >
+        <div className="p-6">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded bg-red-50 text-red-600 border border-red-100">
+              <XCircle size={20} />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-text-main">
+                Cancel Customer Booking
+              </h2>
+              <p className="mt-1 text-sm text-text-dim">
+                {bookingToReject?.customerId?.firstName || "Customer"} -{" "}
+                {bookingToReject?.carId?.name || "Vehicle"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-text-dim">
+              Reason Shown To Customer
+            </label>
+            <textarea
+              value={adminReason}
+              onChange={(e) => {
+                setAdminReason(e.target.value);
+                if (reasonError) setReasonError('');
+              }}
+              rows={4}
+              className="w-full resize-none rounded border border-border bg-bg-dark px-4 py-3 text-sm text-text-main outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="Explain why this booking is being cancelled..."
+            />
+            {reasonError && (
+              <p className="text-sm font-semibold text-red-600">
+                {reasonError}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <button
+              onClick={closeRejectModal}
+              disabled={loading}
+              className="px-5 py-2.5 rounded border border-border text-sm font-black uppercase tracking-widest text-text-dim hover:text-text-main disabled:opacity-50"
+            >
+              Keep Booking
+            </button>
+            <button
+              onClick={handleReject}
+              disabled={loading}
+              className="px-5 py-2.5 rounded bg-red-600 text-sm font-black uppercase tracking-widest text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {loading ? "Cancelling..." : "Cancel Booking"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -16,6 +16,14 @@ export const calculateTotalRent = (rentPerDay, numberOfDays) => {
   return rentPerDay * numberOfDays;
 };
 
+export const calculateSecurityDeposit = (totalRent) => {
+  return Math.ceil(totalRent * 0.1);
+};
+
+export const calculateTotalAmount = (totalRent, securityDeposit = 0) => {
+  return totalRent + securityDeposit;
+};
+
 // Check if car is available for given dates
 export const checkCarAvailability = async (carId, pickupDate, dropoffDate, excludeBookingId = null) => {
   try {
@@ -83,7 +91,7 @@ export const generateBookingReference = () => {
 };
 
 // Calculate refund amount based on cancellation time
-export const calculateRefund = (totalRent, pickupDate) => {
+export const calculateRefund = (totalAmount, pickupDate) => {
   const pickup = new Date(pickupDate);
   const today = new Date();
   const hoursUntilPickup = (pickup - today) / (1000 * 60 * 60);
@@ -107,7 +115,7 @@ export const calculateRefund = (totalRent, pickupDate) => {
     refundPercentage = 0;
   }
 
-  const refundAmount = (totalRent * refundPercentage) / 100;
+  const refundAmount = (totalAmount * refundPercentage) / 100;
   return {
     amount: refundAmount,
     percentage: refundPercentage,
