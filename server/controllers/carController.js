@@ -1,5 +1,6 @@
 // Car Controller - Handles car management operations
 import Car from "../models/Car.js";
+import Booking from "../models/Booking.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -228,7 +229,23 @@ export const updateCar = async (req, res) => {
     if (rentPerDay) car.rentPerDay = parseFloat(rentPerDay);
     if (description) car.description = description.trim();
     if (features) car.features = JSON.parse(features);
-    if (status) car.status = status;
+    if (status) {
+      if (status === "Available") {
+        const hasActiveBooking = await Booking.exists({
+          carId: id,
+          status: { $in: ["Pending", "Confirmed"] },
+        });
+
+        if (hasActiveBooking) {
+          return res.status(409).json({
+            success: false,
+            message: "Cannot mark car as available while it has an active booking",
+          });
+        }
+      }
+
+      car.status = status;
+    }
 
     const url = "http://localhost:5000";
     // Handle new images if uploaded

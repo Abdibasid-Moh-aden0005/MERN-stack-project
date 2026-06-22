@@ -55,6 +55,13 @@ export const createBooking = async (req, res) => {
       });
     }
 
+    if (!Car.isBookableStatus(car.status)) {
+      return res.status(409).json({
+        success: false,
+        message: `Car is currently ${car.status.toLowerCase()} and cannot be booked`,
+      });
+    }
+
     // Check car availability
     const isAvailable = await checkCarAvailability(carId, pickupDate, dropoffDate.toISOString());
     if (!isAvailable) {
@@ -64,8 +71,21 @@ export const createBooking = async (req, res) => {
       });
     }
 
+    const reservedCar = await Car.findOneAndUpdate(
+      { _id: carId, status: 'Available' },
+      { status: 'Reserved' },
+      { new: true },
+    );
+
+    if (!reservedCar) {
+      return res.status(409).json({
+        success: false,
+        message: 'Car is no longer available for booking',
+      });
+    }
+
     // Calculate rental details
-    const totalRent = calculateTotalRent(car.rentPerDay, numberOfDays);
+    const totalRent = calculateTotalRent(reservedCar.rentPerDay, numberOfDays);
     const securityDeposit = calculateSecurityDeposit(totalRent);
 
     // Create booking
@@ -75,7 +95,7 @@ export const createBooking = async (req, res) => {
       pickupDate: new Date(pickupDate),
       dropoffDate,
       numberOfDays,
-      rentPerDay: car.rentPerDay,
+      rentPerDay: reservedCar.rentPerDay,
       totalRent,
       securityDeposit,
       specialRequirements: specialRequirements ? specialRequirements.trim() : '',
@@ -85,7 +105,23 @@ export const createBooking = async (req, res) => {
     });
 
     // Save booking
-    await newBooking.save();
+    try {
+      await newBooking.save();
+    } catch (saveError) {
+      const hasActiveBooking = await Booking.exists({
+        carId,
+        status: { $in: ['Pending', 'Confirmed'] },
+      });
+
+      if (!hasActiveBooking) {
+        await Car.updateOne(
+          { _id: carId, status: 'Reserved' },
+          { status: 'Available' },
+        );
+      }
+
+      throw saveError;
+    }
 
     // Populate car and customer details
     await newBooking.populate('carId', 'name brand model rentPerDay');
@@ -264,6 +300,22 @@ export const checkAvailability = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Car ID, pickup date, and dropoff date are required',
+      });
+    }
+
+    const car = await Car.findById(carId).select('status');
+    if (!car) {
+      return res.status(404).json({
+        success: false,
+        message: 'Car not found',
+      });
+    }
+
+    if (!Car.isBookableStatus(car.status)) {
+      return res.status(200).json({
+        success: true,
+        isAvailable: false,
+        message: `Car is currently ${car.status.toLowerCase()}`,
       });
     }
 

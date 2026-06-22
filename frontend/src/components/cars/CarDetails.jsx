@@ -57,7 +57,16 @@ const CarDetails = () => {
   const grandTotal = totalRent + securityDeposit;
 
   const handleReserve = async () => {
-    if (!pickupDate || selectedCar.status !== "Available") return;
+    if (!pickupDate) {
+      toast.info("Please choose a pick-up date first");
+      return;
+    }
+
+    if (selectedCar.status !== "Available") {
+      toast.error("This vehicle is not available for booking right now");
+      return;
+    }
+
     try {
       await createNewBooking({ carId: id, pickupDate, numberOfDays });
       toast.success("Booking created successfully");
@@ -95,6 +104,30 @@ const CarDetails = () => {
 
   const allImages =
     selectedCar.images?.length > 0 ? selectedCar.images : [null];
+
+  const isCarAvailable = selectedCar.status === "Available";
+  const statusDetails = {
+    Available: {
+      panel: "bg-emerald-50 border-emerald-200 text-emerald-700",
+      dot: "bg-emerald-500",
+      message: "This vehicle is available for booking",
+      buttonText: "Reserve Now",
+    },
+    Reserved: {
+      panel: "bg-blue-50 border-blue-200 text-blue-700",
+      dot: "bg-blue-500",
+      message: "This vehicle is already reserved for another customer",
+      buttonText: "Currently Reserved",
+    },
+    Maintainance: {
+      panel: "bg-orange-50 border-orange-200 text-orange-700",
+      dot: "bg-orange-500",
+      message: "This vehicle is in maintenance and cannot be booked",
+      buttonText: "In Maintenance",
+    },
+  };
+  const currentStatus =
+    statusDetails[selectedCar.status] || statusDetails.Maintainance;
 
   const specsCards = [
     { label: "Top Speed", value: "191 MPH", icon: Gauge },
@@ -402,12 +435,12 @@ const CarDetails = () => {
                 disabled={
                   !pickupDate ||
                   bookingLoading ||
-                  selectedCar.status !== "Available"
+                  !isCarAvailable
                 }
                 className="w-full py-3 text-base shadow-lg shadow-primary/20"
               >
                 <Check size={18} />
-                {bookingLoading ? "Booking..." : "Reserve Now"}
+                {bookingLoading ? "Booking..." : currentStatus.buttonText}
               </Button>
               <p className="text-xs text-text-dim text-center">
                 Free cancellation up to 24 hours before pick-up.
@@ -416,28 +449,12 @@ const CarDetails = () => {
 
             {/* Status Badge */}
             <div
-              className={`mt-6 p-3 rounded-lg border text-sm font-medium flex items-center gap-2 ${
-                selectedCar.status === "Available"
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                  : selectedCar.status === "Reserved"
-                    ? "bg-blue-50 border-blue-200 text-blue-700"
-                    : "bg-orange-50 border-orange-200 text-orange-700"
-              }`}
+              className={`mt-6 p-3 rounded-lg border text-sm font-medium flex items-center gap-2 ${currentStatus.panel}`}
             >
               <div
-                className={`w-2 h-2 rounded-full ${
-                  selectedCar.status === "Available"
-                    ? "bg-emerald-500"
-                    : selectedCar.status === "Reserved"
-                      ? "bg-blue-500"
-                      : "bg-orange-500"
-                }`}
+                className={`w-2 h-2 rounded-full ${currentStatus.dot}`}
               />
-              {selectedCar.status === "Available"
-                ? "This vehicle is currently available for booking"
-                : selectedCar.status === "Reserved"
-                  ? "This vehicle is currently reserved"
-                  : "This vehicle is in maintenance"}
+              {currentStatus.message}
             </div>
           </div>
         </div>

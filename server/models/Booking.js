@@ -1,5 +1,6 @@
 // Booking Model - Handles car rental bookings and status tracking
 import mongoose from "mongoose";
+import Car from "./Car.js";
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -112,6 +113,30 @@ bookingSchema.virtual("totalCost").get(function () {
 
 // Ensure virtuals are included when converting to JSON
 bookingSchema.set("toJSON", { virtuals: true });
+
+const ACTIVE_BOOKING_STATUSES = ["Pending", "Confirmed"];
+
+bookingSchema.post("save", async function syncCarStatusAfterSave(doc) {
+  if (ACTIVE_BOOKING_STATUSES.includes(doc.status)) {
+    await Car.findByIdAndUpdate(doc.carId, { status: "Reserved" });
+    return;
+  }
+
+  if (["Cancelled", "Completed"].includes(doc.status)) {
+    const hasActiveBooking = await mongoose.models.Booking.exists({
+      _id: { $ne: doc._id },
+      carId: doc.carId,
+      status: { $in: ACTIVE_BOOKING_STATUSES },
+    });
+
+    if (!hasActiveBooking) {
+      await Car.updateOne(
+        { _id: doc.carId, status: "Reserved" },
+        { status: "Available" },
+      );
+    }
+  }
+});
 
 const Booking = mongoose.model("Booking", bookingSchema);
 export default Booking;

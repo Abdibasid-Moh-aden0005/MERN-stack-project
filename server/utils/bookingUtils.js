@@ -27,6 +27,11 @@ export const calculateTotalAmount = (totalRent, securityDeposit = 0) => {
 // Check if car is available for given dates
 export const checkCarAvailability = async (carId, pickupDate, dropoffDate, excludeBookingId = null) => {
   try {
+    const car = await Car.findById(carId).select('status');
+    if (!car || car.status !== 'Available') {
+      return false;
+    }
+
     const pickup = new Date(pickupDate);
     const dropoff = new Date(dropoffDate);
 

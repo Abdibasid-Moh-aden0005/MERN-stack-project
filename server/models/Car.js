@@ -96,5 +96,9 @@ const carSchema = new mongoose.Schema(
 carSchema.index({ brand: 1, fuelType: 1, seatingCapacity: 1 });
 carSchema.index({ name: "text", status: "text" });
 
+carSchema.statics.isBookableStatus = function (status) {
+  return status === "Available";
+};
+
 const Car = mongoose.model("Car", carSchema);
 export default Car;

@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Fuel, Settings, ArrowRight } from 'lucide-react';
 import Button from '../common/Button';
 
+const statusConfig = {
+  Available: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  Reserved: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
+  Maintainance: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
+};
+
 const CarCard = ({ car, onBookNow }) => {
   const navigate = useNavigate();
 
@@ -12,6 +18,9 @@ const CarCard = ({ car, onBookNow }) => {
     if (img.startsWith('http')) return img;
     return `http://localhost:5000${img}`;
   };
+
+  const isBookable = car.status === 'Available';
+  const statusStyle = statusConfig[car.status] || statusConfig.Maintainance;
 
   return (
     <div className="glass-card group flex flex-col h-full hover:border-primary/50 transition-all duration-300">
@@ -27,6 +36,10 @@ const CarCard = ({ car, onBookNow }) => {
         />
         <div className="absolute top-3 right-3 px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded shadow-sm">
           {car.brand}
+        </div>
+        <div className={`absolute top-3 left-3 inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded shadow-sm ${statusStyle.bg} ${statusStyle.text}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
+          {car.status}
         </div>
       </div>
 
@@ -64,10 +77,10 @@ const CarCard = ({ car, onBookNow }) => {
             <p className="text-xl font-black text-primary">${car.rentPerDay}</p>
           </div>
           <Button 
-            onClick={() => onBookNow ? onBookNow(car) : navigate(`/cars/${car._id}`)}
+            onClick={() => onBookNow && isBookable ? onBookNow(car) : navigate(`/cars/${car._id}`)}
             className="btn-primary px-4 py-2 text-xs"
           >
-            {onBookNow ? 'Book Now' : 'Details'} <ArrowRight size={14} className="ml-1" />
+            {onBookNow && isBookable ? 'Book Now' : 'Details'} <ArrowRight size={14} className="ml-1" />
           </Button>
         </div>
       </div>
