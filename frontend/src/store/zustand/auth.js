@@ -8,7 +8,7 @@ const API_ROOT = "http://localhost:5000/api";
 const parseJSON = async (response) => {
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data?.message || "Request failed");
+    throw new Error(data?.message || data?.errors || "Request failed");
   }
   return data;
 };

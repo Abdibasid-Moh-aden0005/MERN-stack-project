@@ -1,74 +1,78 @@
 // User Model - Handles customer and admin user data
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-import validator from "validator"
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import validator from "validator";
 
 const userSchema = new mongoose.Schema(
   {
     // ... same as before
     firstName: {
       type: String,
-      required: [true, 'First name is required'],
+      required: [true, "First name is required"],
       trim: true,
     },
     lastName: {
       type: String,
-      required: [true, 'Last name is required'],
+      required: [true, "Last name is required"],
       trim: true,
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
-      validate: [validator.isEmail,'Please provide a valid email'],
+      validate: [validator.isEmail, "Please provide a valid email"],
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: [true, "Password is required"],
       minlength: 6,
       select: false, // Password won't be returned by default in queries
     },
     phone: {
       type: String,
-      required: [true, 'Phone number is required'],
-      match: [/^\d{10}$/, 'Please provide a valid 10-digit phone number'],
+      required: [true, "Phone number is required"],
+      match: [/^\d{10}$/, "Please provide a valid 10-digit phone number"],
     },
     address: {
       type: String,
-      required: [true, 'Address is required'],
+      required: [true, "Address is required"],
     },
     city: {
       type: String,
-      required: [true, 'City is required'],
+      required: [true, "City is required"],
     },
     state: {
       type: String,
-      required: [true, 'State is required'],
+      required: [true, "State is required"],
     },
     zipCode: {
       type: String,
-      required: [true, 'Zip code is required'],
+      required: [true, "Zip code is required"],
     },
     // License Information
     licenseNumber: {
       type: String,
-      required: [true, 'License number is required'],
+      required: [true, "License number is required"],
       unique: true,
     },
     licenseExpiry: {
       type: Date,
-      required: [true, 'License expiry date is required'],
+      required: [true, "License expiry date is required"],
     },
     // Role and Status
     role: {
       type: String,
-      enum: ['customer', 'admin'],
-      default: 'customer',
+      enum: ["customer", "admin"],
+      default: "customer",
     },
     isActive: {
       type: Boolean,
       default: true,
+    },
+    image: {
+      type: String,
+      default: null,
     },
     // Timestamps
     // createdAt: {
@@ -80,17 +84,19 @@ const userSchema = new mongoose.Schema(
     //   default: Date.now,
     // },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Hash password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     return next();
   }
 
   try {
-    const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_ROUNDS) || 10);
+    const salt = await bcrypt.genSalt(
+      parseInt(process.env.BCRYPT_ROUNDS) || 10,
+    );
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
@@ -110,5 +116,5 @@ userSchema.methods.toJSON = function () {
   return user;
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 export default User;
