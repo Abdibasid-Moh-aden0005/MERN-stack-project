@@ -20,8 +20,8 @@ const Profile = () => {
   const refreshUser = () => useAuthStore.getState().refreshUser();
 
   // Handle Update Profile image
-  const [isImage, setIsImage] = useState(true);
   const fileRef = useRef(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   // Profile Details State
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
@@ -123,24 +123,33 @@ const Profile = () => {
   const handleImage = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", "rental_car_marketplace");
-    data.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
+    setUploadingImage(true);
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", "rental_car_marketplace");
+      data.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
 
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dahqdijlh/image/upload",
-      {
-        method: "POST",
-        body: data,
-      },
-    );
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dahqdijlh/image/upload",
+        {
+          method: "POST",
+          body: data,
+        },
+      );
 
-    const imageData = await res.json();
-    if (!imageData) return;
-    setIsImage(true);
-    setProfileData((prev) => ({ ...prev, image: imageData.url }));
-    console.log(imageData);
+      const imageData = await res.json();
+      if (!imageData.url) return;
+      const updatedProfile = { ...profileData, image: imageData.url };
+      setProfileData(updatedProfile);
+      await updateProfile(updatedProfile);
+      refreshUser();
+      setMessage({ type: "success", text: "Profile image updated successfully!" });
+    } catch (err) {
+      setMessage({ type: "error", text: err.message || "Failed to upload image" });
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   return (
@@ -151,23 +160,29 @@ const Profile = () => {
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
           <div className="relative">
             <input
-              type="text"
+              type="file"
               hidden
               ref={fileRef}
-              type="file"
               accept="image/*"
               onChange={handleImage}
             />
-            <div className="w-32 h-32 rounded bg-linear-to-br from-primary to-emerald-700 flex items-center justify-center text-white text-5xl font-black shadow-[0_20px_50px_rgba(var(--primary-rgb),0.3)]">
-              {isImage ? (
+            <div className="w-32 h-32 rounded bg-linear-to-br from-primary to-emerald-700 flex items-center justify-center text-white text-5xl font-black shadow-[0_20px_50px_rgba(var(--primary-rgb),0.3)] relative overflow-hidden">
+              {uploadingImage && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                  <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                </div>
+              )}
+              {profileData.image ? (
                 <img
-                  src={user?.image}
+                  src={profileData.image}
                   alt=""
                   onClick={() => fileRef.current.click()}
                   className="w-full h-full object-cover rounded"
                 />
               ) : (
-                user?.firstName?.[0] && user?.lastName?.[0]
+                <span className="cursor-pointer" onClick={() => fileRef.current.click()}>
+                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                </span>
               )}
             </div>
             <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded border-4 border-bg-sidebar flex items-center justify-center text-white">
