@@ -15,10 +15,10 @@ router.get('/:id', getCarById);
 
 // Protected Admin Routes
 // POST /api/cars - Add new car (Admin only)
-router.post('/', authMiddleware, adminMiddleware, upload.array('images', 6), addCar);
+router.post('/', authMiddleware, adminMiddleware, upload.array('images', 5), addCar);
 
 // PUT /api/cars/:id - Update car details (Admin only)
-router.put('/:id', authMiddleware, adminMiddleware, upload.array('images', 6), updateCar);
+router.put('/:id', authMiddleware, adminMiddleware, upload.array('images', 5), updateCar);
 
 // DELETE /api/cars/:id - Delete car (Admin only)
 router.delete('/:id', authMiddleware, adminMiddleware, deleteCar);

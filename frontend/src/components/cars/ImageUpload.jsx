@@ -1,15 +1,29 @@
-import React, { useState } from 'react';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, X } from 'lucide-react';
 
-const ImageUpload = ({ images, setImages, existingImages = [], onDeleteExisting }) => {
+const getImageUrl = (image) => {
+  if (!image) return '';
+  if (image.startsWith('http')) return image;
+  return `http://localhost:5000${image}`;
+};
+
+const ImageUpload = ({ setImages, existingImages = [], onDeleteExisting }) => {
   const [previews, setPreviews] = useState([]);
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
+    const remainingSlots = 5 - existingImages.length - previews.length;
+    const files = Array.from(e.target.files).slice(0, remainingSlots);
+
+    if (files.length === 0) {
+      e.target.value = '';
+      return;
+    }
+
     setImages(prev => [...prev, ...files]);
 
     const newPreviews = files.map(file => URL.createObjectURL(file));
     setPreviews(prev => [...prev, ...newPreviews]);
+    e.target.value = '';
   };
 
   const removeNewImage = (index) => {
@@ -26,7 +40,7 @@ const ImageUpload = ({ images, setImages, existingImages = [], onDeleteExisting 
         {existingImages.map((img, index) => (
           <div key={`existing-${index}`} className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 group">
             <img 
-              src={`http://localhost:5000${img}`} 
+              src={getImageUrl(img)} 
               alt="Car" 
               className="w-full h-full object-cover"
             />

@@ -1,12 +1,73 @@
 // Car Controller - Handles car management operations
 import Car from "../models/Car.js";
 import Booking from "../models/Booking.js";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const CLOUDINARY_UPLOAD_PRESET = "car_images";
+
+const parseImageList = (images) => {
+  if (!images) return [];
+  if (Array.isArray(images)) {
+    return images.flatMap((image) => parseImageList(image));
+  }
+  if (typeof images !== "string") return [];
+
+  const trimmedImages = images.trim();
+  if (!trimmedImages) return [];
+
+  if (trimmedImages.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmedImages);
+      return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return trimmedImages
+    .split(",")
+    .map((image) => image.trim())
+    .filter(Boolean);
+};
+
+const uploadImageToCloudinary = async (file) => {
+  if (!process.env.VITE_CLOUDINARY_URL) {
+    throw new Error("Cloudinary upload URL is not configured");
+  }
+
+  if (typeof fetch !== "function" || typeof FormData !== "function") {
+    throw new Error("Cloudinary uploads require Node.js 18+ with fetch and FormData support");
+  }
+
+  const formData = new FormData();
+  const base64Image = file.buffer.toString("base64");
+
+  formData.append("file", `data:${file.mimetype};base64,${base64Image}`);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+  if (process.env.VITE_CLOUDINARY_APIKEY) {
+    formData.append("api_key", process.env.VITE_CLOUDINARY_APIKEY);
+  }
+
+  const response = await fetch(process.env.VITE_CLOUDINARY_URL, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || !data.secure_url) {
+    throw new Error(
+      data?.error?.message || data?.message || "Cloudinary upload failed",
+    );
+  }
+
+  return data.secure_url;
+};
+
+const uploadCarImages = async (files = []) => {
+  if (!files.length) return [];
+  return Promise.all(files.map((file) => uploadImageToCloudinary(file)));
+};
 
 // Add new car (Admin only)
 export const addCar = async (req, res) => {
@@ -42,11 +103,8 @@ export const addCar = async (req, res) => {
         message: "Missing required fields",
       });
     }
-    const url = "http://localhost:5000";
-    // Get image paths from uploaded files
-    const images = req.files
-      ? req.files.map((file) => `/uploads/cars/${file.filename}`)
-      : [];
+    // Upload images to Cloudinary and store returned secure URLs
+    const images = await uploadCarImages(req.files);
 
     // Create new car
     const newCar = new Car({
@@ -247,13 +305,18 @@ export const updateCar = async (req, res) => {
       car.status = status;
     }
 
-    const url = "http://localhost:5000";
     // Handle new images if uploaded
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(
-        (file) => `/uploads/cars/${file.filename}`,
-      );
+      const newImages = await uploadCarImages(req.files);
       car.images = [...car.images, ...newImages];
+    }
+
+    if (req.body.images !== undefined) {
+      const existingImages = parseImageList(req.body.images);
+      const uploadedImages = req.files?.length
+        ? car.images.slice(car.images.length - req.files.length)
+        : [];
+      car.images = [...existingImages, ...uploadedImages];
     }
 
     car.updatedAt = Date.now();
@@ -290,16 +353,6 @@ export const deleteCar = async (req, res) => {
       });
     }
 
-    // Delete associated image files
-    if (car.images && car.images.length > 0) {
-      car.images.forEach((imagePath) => {
-        const fullPath = path.join(__dirname, "../", imagePath);
-        if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath);
-        }
-      });
-    }
-
     res.status(200).json({
       success: true,
       message: "Car deleted successfully",
@@ -331,12 +384,6 @@ export const deleteCarImage = async (req, res) => {
 
     // Remove image from array
     car.images = car.images.filter((img) => img !== imageUrl);
-
-    // Delete image file from disk
-    const fullPath = path.join(__dirname, "../", imageUrl);
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-    }
 
     await car.save();
 
