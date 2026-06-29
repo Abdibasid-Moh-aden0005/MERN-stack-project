@@ -5,7 +5,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import useAuthStore from './store/zustand/auth';
 
 // Layout
-import Sidebar from './components/layout/Sidebar';
+import AdminSidebar from './components/layout/AdminSidebar';
+import CustomerSidebar from './components/layout/CustomerSidebar';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 // Admin Pages
@@ -39,8 +40,9 @@ function AppContent() {
 
   return (
     <div className="flex  min-h-screen bg-bg-dark overflow-hidden">
-      {/* Show sidebar for all logged in users, but Sidebar component handles internal role-based filtering */}
-      {!isAuthPage && isAuthenticated && <Sidebar />}
+      {!isAuthPage && isAuthenticated && (
+        user?.role === 'admin' ? <AdminSidebar /> : <CustomerSidebar />
+      )}
       
       <main className="w-full overflow-y-auto ml-72">
         <Routes>

@@ -1,6 +1,6 @@
 // Booking Utility Functions - Helper functions for booking operations
-import Booking from '../models/Booking.js';
-import Car from '../models/Car.js';
+import Booking from "../models/Booking.js";
+import Car from "../models/Car.js";
 
 // Calculate number of days between two dates
 export const calculateDays = (pickupDate, dropoffDate) => {
@@ -25,10 +25,15 @@ export const calculateTotalAmount = (totalRent, securityDeposit = 0) => {
 };
 
 // Check if car is available for given dates
-export const checkCarAvailability = async (carId, pickupDate, dropoffDate, excludeBookingId = null) => {
+export const checkCarAvailability = async (
+  carId,
+  pickupDate,
+  dropoffDate,
+  excludeBookingId = null,
+) => {
   try {
-    const car = await Car.findById(carId).select('status');
-    if (!car || car.status !== 'Available') {
+    const car = await Car.findById(carId).select("status");
+    if (!car || car.status !== "Available") {
       return false;
     }
 
@@ -38,7 +43,7 @@ export const checkCarAvailability = async (carId, pickupDate, dropoffDate, exclu
     // Query to find overlapping bookings
     let query = {
       carId,
-      status: { $in: ['Pending', 'Confirmed'] },
+      status: { $in: ["Pending", "Confirmed"] },
       $or: [
         {
           // Existing booking starts before our dropoff and ends after our pickup
@@ -57,9 +62,8 @@ export const checkCarAvailability = async (carId, pickupDate, dropoffDate, exclu
 
     return !existingBooking; // Return true if available (no overlapping bookings)
   } catch (error) {
-    console.log('Availability check error:', error);
+    console.log("Availability check error:", error);
     return false;
-   
   }
 };
 
@@ -74,12 +78,12 @@ export const validateBookingDates = (pickupDate, dropoffDate) => {
 
   // Check if pickup date is in the future
   if (pickup < today) {
-    errors.push('Pickup date must be in the future');
+    errors.push("Pickup date must be in the future");
   }
 
   // Check if dropoff is after pickup
   if (dropoff < pickup) {
-    errors.push('Dropoff date must be after pickup date');
+    errors.push("Dropoff date must be after pickup date");
   }
 
   return {
@@ -117,7 +121,7 @@ export const calculateRefund = (totalAmount, pickupDate) => {
   }
   // No refund if cancelled within 24 hours
   else {
-    refundPercentage = 0;
+    refundPercentage = 25;
   }
 
   const refundAmount = (totalAmount * refundPercentage) / 100;
