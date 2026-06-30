@@ -47,17 +47,19 @@ const AdminSidebar = () => {
 
   return (
     <div className="fixed top-0 left-0 w-72 h-screen bg-bg-sidebar flex flex-col p-6 shadow-2xl z-50">
-      <Link to="/">
-        <div className="flex items-center gap-3 mb-12 px-2">
-          <div className="w-10 h-10 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20">
-            <Car className="text-white" size={24} />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">LuxeDrive</h1>
-            <p className="text-[10px] text-text-dim uppercase tracking-widest font-semibold">Admin Panel</p>
-          </div>
+      <div className="flex items-center gap-3 mb-12 px-2">
+        <div className="w-10 h-10 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20">
+          <Car className="text-white" size={24} />
         </div>
-      </Link>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-white">
+            LuxeDrive
+          </h1>
+          <p className="text-[10px] text-text-dim uppercase tracking-widest font-semibold">
+            Admin Panel
+          </p>
+        </div>
+      </div>
 
       <nav className="flex-1 space-y-2">
         {menuItems.map((item) => (
@@ -73,7 +75,10 @@ const AdminSidebar = () => {
               <item.icon size={22} className="transition-colors" />
               <span className="font-medium">{item.name}</span>
             </div>
-            <ChevronRight size={16} className="opacity-0 group-hover:opacity-40 transition-opacity" />
+            <ChevronRight
+              size={16}
+              className="opacity-0 group-hover:opacity-40 transition-opacity"
+            />
           </NavLink>
         ))}
       </nav>
@@ -84,8 +89,12 @@ const AdminSidebar = () => {
             {getInitials()}
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-semibold truncate text-white">{getDisplayName()}</p>
-            <p className="text-[10px] text-text-dim truncate uppercase tracking-tighter">Admin</p>
+            <p className="text-sm font-semibold truncate text-white">
+              {getDisplayName()}
+            </p>
+            <p className="text-[10px] text-text-dim truncate uppercase tracking-tighter">
+              Admin
+            </p>
           </div>
         </div>
 
