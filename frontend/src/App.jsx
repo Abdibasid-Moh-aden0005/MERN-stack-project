@@ -23,6 +23,7 @@ import Register from './pages/auth/Register';
 import Home from './pages/user/Home';
 import Profile from './pages/user/Profile';
 import MyBookings from './pages/user/MyBookings';
+import BookingDetails from './components/customer/BookingDetails';
 import CarDetails from './components/cars/CarDetails';
 
 function AppContent() {
@@ -100,6 +101,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <div className="p-8"><MyBookings /></div>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/my-bookings/:id" 
+            element={
+              <ProtectedRoute>
+                <div className="p-8"><BookingDetails /></div>
               </ProtectedRoute>
             } 
           />

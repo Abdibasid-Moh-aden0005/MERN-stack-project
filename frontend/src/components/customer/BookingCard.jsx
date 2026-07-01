@@ -123,7 +123,10 @@ const BookingCard = ({ booking, loading, onOpenCancel }) => {
                   Cancel
                 </button>
               )}
-              <button className="flex items-center gap-2 text-sm font-black text-primary hover:text-emerald-600 transition-colors group/btn uppercase tracking-widest">
+              <button
+                onClick={() => navigate(`/my-bookings/${booking._id}`)}
+                className="flex items-center gap-2 text-sm font-black text-primary hover:text-emerald-600 transition-colors group/btn uppercase tracking-widest"
+              >
                 Reservation Details{" "}
                 <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
               </button>
