@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useCarStore from '../../store/zustand/cars';
@@ -14,8 +14,19 @@ const Home = () => {
   const { cars, loading } = useCarStore();
   const { isAuthenticated } = useAuthStore();
   const fetchCars = useCarStore((state) => state.fetchCars);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => { fetchCars(); }, [fetchCars]);
+
+  const filteredCars = cars.filter((car) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      car.name.toLowerCase().includes(term) ||
+      car.brand.toLowerCase().includes(term) ||
+      car.model?.toLowerCase().includes(term)
+    );
+  });
 
   const handleBookNow = (car) => {
     if (!isAuthenticated) {
@@ -29,8 +40,8 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-bg-dark pb-20">
       <HeroSection />
-      <SearchBar />
-      <FleetGrid cars={cars} loading={loading} onBookNow={handleBookNow} />
+      <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+      <FleetGrid cars={filteredCars} loading={loading} onBookNow={handleBookNow} />
       <CTASection />
     </div>
   );
