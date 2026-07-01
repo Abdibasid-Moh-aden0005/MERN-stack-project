@@ -119,9 +119,13 @@ export const calculateRefund = (totalAmount, pickupDate) => {
   else if (hoursUntilPickup >= 24) {
     refundPercentage = 50;
   }
-  // No refund if cancelled within 24 hours
-  else {
+  // 25% refund if cancelled 16-24 hours before pickup
+  else if (hoursUntilPickup >= 16) {
     refundPercentage = 25;
+  }
+  // No refund if cancelled within 16 hours
+  else {
+    refundPercentage = 0;
   }
 
   const refundAmount = (totalAmount * refundPercentage) / 100;

@@ -271,6 +271,18 @@ export const cancelBooking = async (req, res) => {
 
     await booking.save();
 
+    const activeBookingExists = await Booking.exists({
+      _id: { $ne: booking._id },
+      carId: booking.carId,
+      status: { $in: ['Pending', 'Confirmed'] },
+    });
+    if (!activeBookingExists) {
+      await Car.updateOne(
+        { _id: booking.carId, status: 'Reserved' },
+        { status: 'Available' },
+      );
+    }
+
     res.status(200).json({
       success: true,
       message: `Booking cancelled successfully. Refund: $${refund.amount} (${refund.percentage}%).`,

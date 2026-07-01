@@ -2,7 +2,7 @@
 import Booking from '../models/Booking.js';
 import Car from '../models/Car.js';
 import User from '../models/User.js';
-import { calculateRefund, calculateTotalAmount } from '../utils/bookingUtils.js';
+import { calculateTotalAmount } from '../utils/bookingUtils.js';
 
 // Get all bookings (Admin only)
 export const getAllBookings = async (req, res) => {
@@ -95,22 +95,37 @@ export const updateBookingStatus = async (req, res) => {
       });
     }
 
+    const isNewCancellation = status === 'Cancelled' && booking.status !== 'Cancelled';
+
     booking.status = status;
     if (adminReason) {
       booking.adminNotes = adminReason;
     }
-    if (status === 'Cancelled') {
+    if (isNewCancellation) {
       const totalAmount = calculateTotalAmount(booking.totalRent, booking.securityDeposit);
-      const refund = calculateRefund(totalAmount, booking.pickupDate);
 
       booking.cancelledAt = booking.cancelledAt || new Date();
       booking.cancellationReason = adminReason || booking.cancellationReason || 'Cancelled by admin';
-      booking.refundAmount = refund.amount;
+      booking.refundAmount = totalAmount;
       booking.paymentStatus = 'Pending';
     }
     booking.updatedAt = Date.now();
 
     await booking.save();
+
+    if (isNewCancellation) {
+      const activeBookingExists = await Booking.exists({
+        _id: { $ne: booking._id },
+        carId: booking.carId,
+        status: { $in: ['Pending', 'Confirmed'] },
+      });
+      if (!activeBookingExists) {
+        await Car.updateOne(
+          { _id: booking.carId, status: 'Reserved' },
+          { status: 'Available' },
+        );
+      }
+    }
 
     await booking.populate('carId', 'name brand model rentPerDay images');
     await booking.populate('customerId', 'firstName lastName email');
