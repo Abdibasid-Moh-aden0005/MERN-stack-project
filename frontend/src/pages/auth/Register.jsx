@@ -12,6 +12,7 @@ import {
   CreditCard,
   Calendar,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import useAuthStore from "../../store/zustand/auth";
 import Button from "../../components/common/Button";
 
@@ -41,7 +42,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      // Basic client side check
+      toast.error("Passwords do not match");
       return;
     }
     try {
@@ -60,7 +61,7 @@ const Register = () => {
       });
       navigate("/");
     } catch (err) {
-      // Error handled by context
+      toast.error(err?.message || "Registration failed");
     }
   };
 

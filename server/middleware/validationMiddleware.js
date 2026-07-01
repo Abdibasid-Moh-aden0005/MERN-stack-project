@@ -45,7 +45,7 @@ export const validateUserRegistration = (req, res, next) => {
   }
 
   // Phone validation
-  if (!phone || !/^\d{9}$/.test(phone)) {
+  if (!phone || !/^\d{10}$/.test(phone)) {
     errors.push("Phone number must be 10 digits");
   }
 

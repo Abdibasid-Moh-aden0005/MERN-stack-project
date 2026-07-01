@@ -6,9 +6,21 @@ import { create } from "zustand";
 const API_ROOT = "http://localhost:5000/api";
 
 const parseJSON = async (response) => {
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(data?.message || data?.errors || "Request failed");
+    const errors = data?.errors
+      ? Array.isArray(data.errors)
+        ? data.errors.join(", ")
+        : data.errors
+      : null;
+
+    const errorMessage = data?.message
+      ? errors
+        ? `${data.message}: ${errors}`
+        : data.message
+      : errors || response.statusText || "Request failed";
+
+    throw new Error(errorMessage);
   }
   return data;
 };
