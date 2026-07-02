@@ -14,11 +14,15 @@ const parseJSON = async (response) => {
         : data.errors
       : null;
 
+    const serverError = data?.error || null;
+
     const errorMessage = data?.message
       ? errors
         ? `${data.message}: ${errors}`
-        : data.message
-      : errors || response.statusText || "Request failed";
+        : serverError
+          ? `${data.message}: ${serverError}`
+          : data.message
+      : errors || serverError || response.statusText || "Request failed";
 
     throw new Error(errorMessage);
   }
