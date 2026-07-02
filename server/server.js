@@ -16,9 +16,10 @@ import connectDB from "./config/database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const _dirname = path.resolve(__dirname, "..");
 
 // Load environment variables
-dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 
@@ -36,6 +37,9 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Serve static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Serve frontend build in production
+app.use(express.static(path.join(_dirname, "frontend", "dist")));
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -61,7 +65,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 Route
+// SPA catch-all — serve index.html for non-API routes
+app.get("*", (req, res) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) return;
+  res.sendFile(path.join(_dirname, "frontend", "dist", "index.html"));
+});
+
+// 404 for API routes only
 app.use((req, res) => {
   res.status(404).json({
     success: false,

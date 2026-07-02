@@ -4,7 +4,7 @@ import useAuthStore from "./auth";
 /* ───────────────────────────────────────────────
    API root & helpers
    ─────────────────────────────────────────────── */
-const API_ROOT = "http://localhost:5000/api";
+const API_ROOT = "/api";
 
 const parseJSON = async (response) => {
   const data = await response.json();

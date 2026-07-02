@@ -3,7 +3,7 @@ import { create } from "zustand";
 /* ───────────────────────────────────────────────
    API root & helper
    ─────────────────────────────────────────────── */
-const API_ROOT = "http://localhost:5000/api";
+const API_ROOT = "/api";
 
 const parseJSON = async (response) => {
   const data = await response.json().catch(() => null);
