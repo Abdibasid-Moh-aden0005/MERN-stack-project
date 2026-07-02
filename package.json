@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Classic Rental Car Booking System Backend",
-  "main": "server/server.js",
+  "main": "./server/server.js",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "nodemon server/server.js"
+    "start": "node ./server/server.js",
+    "dev": "nodemon ./server/server.js"
   },
   "keywords": [
     "car",
