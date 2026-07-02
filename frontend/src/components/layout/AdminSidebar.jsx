@@ -53,7 +53,7 @@ const AdminSidebar = () => {
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white">
-            LuxeDrive
+            Classic Rental Car
           </h1>
           <p className="text-[10px] text-text-dim uppercase tracking-widest font-semibold">
             Admin Panel

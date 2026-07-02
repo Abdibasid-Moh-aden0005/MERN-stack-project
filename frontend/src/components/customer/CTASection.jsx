@@ -11,7 +11,7 @@ const CTASection = () => {
           READY TO START <br /> YOUR JOURNEY?
         </h2>
         <p className="text-white/80 text-lg max-w-2xl mx-auto relative z-10">
-          Join thousands of satisfied drivers and experience the best luxury car rental service in the world.
+          Join thousands of satisfied drivers and experience the best classic car rental service in the world.
         </p>
         <div className="relative z-10 flex flex-col md:flex-row gap-4 justify-center pt-4">
           <button

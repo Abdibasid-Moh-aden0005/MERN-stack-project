@@ -1,8 +1,8 @@
-# Car Rental Booking System - Project Summary
+# Classic Rental Car - Project Summary
 
 ## 🎯 Project Overview
 
-A complete, production-ready **MERN Stack** (MongoDB, Express, React, Node.js) application for a Car Rental Booking System with advanced features like real-time availability checking, JWT authentication, role-based access control, and an admin dashboard.
+A complete, production-ready **MERN Stack** (MongoDB, Express, React, Node.js) application for a Classic Rental Car booking system with advanced features like real-time availability checking, JWT authentication, role-based access control, and an admin dashboard.
 
 ---
 
@@ -223,7 +223,7 @@ API Base URL: http://localhost:5000/api
 ## 📁 Project Structure Summary
 
 ```
-CarRental/
+ClassicRentalCar/
 ├── Backend (server/)
 │   ├── Models: User, Car, Booking
 │   ├── Controllers: Auth, Car, Booking, Admin

@@ -16,7 +16,7 @@ const HeroSection = () => {
       <div className="container mx-auto px-6 relative z-10 max-w-[1440px]">
         <div className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-left duration-1000">
           <span className="px-4 py-1.5 bg-primary/20 text-white border border-primary/30 rounded text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
-            Premium Car Rental
+            Classic Rental Car
           </span>
           <h1 className="text-6xl md:text-8xl font-black leading-tight tracking-tighter text-white">
             DRIVE THE <br />

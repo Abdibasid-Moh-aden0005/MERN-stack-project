@@ -1,4 +1,4 @@
-# Car Rental Booking System - Quick Start Guide
+# Classic Rental Car - Quick Start Guide
 
 ## 🚀 Get Running in 5 Minutes
 

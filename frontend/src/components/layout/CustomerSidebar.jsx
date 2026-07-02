@@ -48,8 +48,12 @@ const CustomerSidebar = () => {
             <Car className="text-white" size={24} />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">LuxeDrive</h1>
-            <p className="text-[10px] text-text-dim uppercase tracking-widest font-semibold">Member Area</p>
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Classic Rental Car
+            </h1>
+            <p className="text-[10px] text-text-dim uppercase tracking-widest font-semibold">
+              Member Area
+            </p>
           </div>
         </div>
       </Link>
@@ -68,7 +72,10 @@ const CustomerSidebar = () => {
               <item.icon size={22} className="transition-colors" />
               <span className="font-medium">{item.name}</span>
             </div>
-            <ChevronRight size={16} className="opacity-0 group-hover:opacity-40 transition-opacity" />
+            <ChevronRight
+              size={16}
+              className="opacity-0 group-hover:opacity-40 transition-opacity"
+            />
           </NavLink>
         ))}
       </nav>
@@ -79,8 +86,12 @@ const CustomerSidebar = () => {
             {getInitials()}
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-semibold truncate text-white">{getDisplayName()}</p>
-            <p className="text-[10px] text-text-dim truncate uppercase tracking-tighter">Customer</p>
+            <p className="text-sm font-semibold truncate text-white">
+              {getDisplayName()}
+            </p>
+            <p className="text-[10px] text-text-dim truncate uppercase tracking-tighter">
+              Customer
+            </p>
           </div>
         </div>
 

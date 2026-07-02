@@ -1,4 +1,4 @@
-# Car Rental Booking System - Complete Setup Guide
+# Classic Rental Car - Complete Setup Guide
 
 ## Project Overview
 A full-stack MERN application for booking cars with user authentication, real-time availability checking, and admin dashboard for managing cars and bookings.
@@ -140,7 +140,7 @@ Application will open at `http://localhost:3000`
 ## Project Structure
 
 ```
-CarRental/
+ClassicRentalCar/
 ├── client/                          # React Frontend
 │   ├── src/
 │   │   ├── components/

@@ -46,10 +46,10 @@ const Login = () => {
           </div>
           <h2 className="text-5xl font-black mb-6 leading-tight text-text-main">
             Elevate Your Journey with{" "}
-            <span className="text-primary">LuxeDrive</span>
+            <span className="text-primary">Classic Rental Car</span>
           </h2>
           <p className="text-xl text-text-main font-medium">
-            Experience the pinnacle of luxury car rental with our exclusive
+            Experience the pinnacle of classic car rental with our exclusive
             fleet and premium service.
           </p>
         </div>

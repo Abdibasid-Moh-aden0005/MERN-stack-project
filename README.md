@@ -1,6 +1,6 @@
-# Car Rental Booking System
+# Classic Rental Car
 
-A full-stack MERN (MongoDB, Express, React, Node.js) application for a comprehensive car rental booking system with admin and customer features.
+A full-stack MERN (MongoDB, Express, React, Node.js) application for a comprehensive classic car rental booking system with admin and customer features.
 
 ## Features
 
@@ -36,7 +36,7 @@ A full-stack MERN (MongoDB, Express, React, Node.js) application for a comprehen
 ## Project Structure
 
 ```
-CarRental/
+ClassicRentalCar/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/
@@ -84,4 +84,4 @@ See `.env` file in the server directory for required environment variables.
 - Follow the existing code structure and naming conventions
 - Use async/await for promises
 - Implement proper error handling
-# CarRental
+# ClassicRentalCar

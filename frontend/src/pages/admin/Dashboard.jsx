@@ -18,6 +18,8 @@ import FleetStatus from "../../components/admin/FleetStatus";
 import FeaturedCar from "../../components/admin/FeaturedCar";
 import QuickActions from "../../components/admin/QuickActions";
 import RecentActivity from "../../components/admin/RecentActivity";
+import FuelTypeChart from "../../components/admin/FuelType";
+import RentPerDayChart from "../../components/admin/RentPerDayChart";
 
 const Dashboard = () => {
   const { cars } = useCarStore();
@@ -123,6 +125,11 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <QuickActions />
         <RecentActivity bookings={bookings} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <FuelTypeChart cars={cars} />
+        <RentPerDayChart cars={cars} />
       </div>
     </div>
   );
