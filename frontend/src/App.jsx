@@ -1,37 +1,44 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import useAuthStore from './store/zustand/auth';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import useAuthStore from "./store/zustand/auth";
 
 // Layout
-import AdminSidebar from './components/layout/AdminSidebar';
-import CustomerSidebar from './components/layout/CustomerSidebar';
-import ProtectedRoute from './components/common/ProtectedRoute';
+import AdminSidebar from "./components/layout/AdminSidebar";
+import CustomerSidebar from "./components/layout/CustomerSidebar";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 // Admin Pages
-import Dashboard from './pages/admin/Dashboard';
-import Cars from './pages/admin/Cars';
-import AdminBookings from './pages/admin/AdminBookings';
-import Customers from './pages/admin/Customers';
+import Dashboard from "./pages/admin/Dashboard";
+import Cars from "./pages/admin/Cars";
+import AdminBookings from "./pages/admin/AdminBookings";
+import BookingHistory from "./components/admin/BookingHistory";
+import Customers from "./pages/admin/Customers";
 
 // Auth Pages
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 
 // User Pages
-import Home from './pages/user/Home';
-import Profile from './pages/user/Profile';
-import MyBookings from './pages/user/MyBookings';
-import BookingDetails from './components/customer/BookingDetails';
-import CarDetails from './components/cars/CarDetails';
+import Home from "./pages/user/Home";
+import Profile from "./pages/user/Profile";
+import MyBookings from "./pages/user/MyBookings";
+import BookingDetails from "./components/customer/BookingDetails";
+import CarDetails from "./components/cars/CarDetails";
 
 function AppContent() {
   const { isAuthenticated, user, status } = useAuthStore();
   const location = useLocation();
-  const isAuthPage = ['/login', '/register'].includes(location.pathname);
+  const isAuthPage = ["/login", "/register"].includes(location.pathname);
 
-  if (status === 'loading' && !isAuthenticated) {
+  if (status === "loading" && !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-dark text-primary">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -40,11 +47,11 @@ function AppContent() {
   }
 
   return (
-    <div className="flex  min-h-screen bg-bg-dark overflow-hidden">
-      {!isAuthPage && isAuthenticated && (
-        user?.role === 'admin' ? <AdminSidebar /> : <CustomerSidebar />
-      )}
-      
+    <div className="flex  justify-between min-h-screen bg-bg-dark overflow-hidden">
+      {!isAuthPage &&
+        isAuthenticated &&
+        (user?.role === "admin" ? <AdminSidebar /> : <CustomerSidebar />)}
+
       <main className="w-full overflow-y-auto ml-72">
         <Routes>
           {/* Public Routes */}
@@ -54,82 +61,108 @@ function AppContent() {
           <Route path="/cars/:id" element={<CarDetails />} />
 
           {/* Admin Protected Routes */}
-          <Route 
-            path="/admin" 
+          <Route
+            path="/admin"
             element={
               <ProtectedRoute adminOnly>
-                <div className="p-8"><Dashboard /></div>
+                <div className="p-8">
+                  <Dashboard />
+                </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/cars" 
+          <Route
+            path="/admin/cars"
             element={
               <ProtectedRoute adminOnly>
-                <div className="p-8"><Cars /></div>
+                <div className="p-8">
+                  <Cars />
+                </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/bookings" 
+          <Route
+            path="/admin/bookings"
             element={
               <ProtectedRoute adminOnly>
-                <div className="p-8"><AdminBookings /></div>
+                <div className="p-8">
+                  <AdminBookings />
+                </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/customers" 
+          <Route
+            path="/admin/bookings/:id"
             element={
               <ProtectedRoute adminOnly>
-                <div className="p-8"><Customers /></div>
+                <div className="p-8">
+                  <BookingHistory />
+                </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          
+          <Route
+            path="/admin/customers"
+            element={
+              <ProtectedRoute adminOnly>
+                <div className="p-8">
+                  <Customers />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
           {/* User Protected Routes */}
-          <Route 
-            path="/profile" 
+          <Route
+            path="/profile"
             element={
               <ProtectedRoute>
-                <div className="p-8"><Profile /></div>
+                <div className="p-8">
+                  <Profile />
+                </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/my-bookings" 
+          <Route
+            path="/my-bookings"
             element={
               <ProtectedRoute>
-                <div className="p-8"><MyBookings /></div>
+                <div className="p-8">
+                  <MyBookings />
+                </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/my-bookings/:id" 
+          <Route
+            path="/my-bookings/:id"
             element={
               <ProtectedRoute>
-                <div className="p-8"><BookingDetails /></div>
+                <div className="p-8">
+                  <BookingDetails />
+                </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/settings" 
+          <Route
+            path="/settings"
             element={
               <ProtectedRoute>
                 <div className="p-8 text-white">
                   <h1 className="text-3xl font-bold mb-6">Settings</h1>
-                  <p className="text-text-dim">Application settings coming soon...</p>
+                  <p className="text-text-dim">
+                    Application settings coming soon...
+                  </p>
                 </div>
               </ProtectedRoute>
-            } 
+            }
           />
 
           {/* 404 Redirect */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
-      
-      <ToastContainer 
+
+      <ToastContainer
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}

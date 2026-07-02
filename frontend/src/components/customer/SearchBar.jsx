@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 
 const SearchBar = ({ searchTerm, onSearchChange }) => {
   return (
-    <div className="container mx-auto px-6 -mt-12 relative z-20 max-w-360">
+    <div className="container my-2 mx-auto px-6 -mt-12 relative z-20 max-w-360">
       <div className="glass-card p-4 flex flex-col md:flex-row gap-4 items-center">
         <div className="flex-1 relative w-full group">
           <Search

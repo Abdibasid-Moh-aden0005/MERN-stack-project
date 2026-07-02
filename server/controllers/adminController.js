@@ -98,6 +98,9 @@ export const updateBookingStatus = async (req, res) => {
     const isNewCancellation = status === 'Cancelled' && booking.status !== 'Cancelled';
 
     booking.status = status;
+    if (status === 'Confirmed') {
+      booking.paymentStatus = 'Completed';
+    }
     if (adminReason) {
       booking.adminNotes = adminReason;
     }

@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, Receipt } from "lucide-react";
+import { CheckCircle2, XCircle, Receipt, FileText } from "lucide-react";
 
 const statusConfig = {
   Pending: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
@@ -15,7 +15,7 @@ const getImageUrl = (image) => {
 
 const getTotalAmount = (booking) => (booking.totalRent || 0) + (booking.securityDeposit || 0);
 
-const BookingTable = ({ bookings, loading, onConfirm, onComplete, onOpenReject, filteredCount, totalCount }) => {
+const BookingTable = ({ bookings, loading, onConfirm, onComplete, onOpenReject, onViewDetails, filteredCount, totalCount }) => {
   if (loading) {
     return (
       <div className="px-6 py-20 text-center">
@@ -135,9 +135,14 @@ const BookingTable = ({ bookings, loading, onConfirm, onComplete, onOpenReject, 
                       >
                         <CheckCircle2 size={16} />
                       </button>
-                    ) : (
-                      <span className="text-xs text-text-dim">-</span>
-                    )}
+                    ) : null}
+                    <button
+                      onClick={() => onViewDetails(booking._id)}
+                      className="p-2 hover:bg-blue-50 text-text-dim hover:text-blue-600 rounded-lg transition-all"
+                      title="View Reports"
+                    >
+                      <FileText size={16} />
+                    </button>
                   </td>
                 </tr>
               );

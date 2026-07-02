@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useBookingStore from '../../store/zustand/Bookings';
 import { toast } from 'react-toastify';
 import BookingStats from '../../components/admin/BookingStats';
@@ -7,6 +8,7 @@ import BookingTable from '../../components/admin/BookingTable';
 import RejectBookingModal from '../../components/admin/RejectBookingModal';
 
 const AdminBookings = () => {
+  const navigate = useNavigate();
   const { bookings, loading } = useBookingStore();
   const fetchAllBookings = useBookingStore((state) => state.fetchAllBookings);
   const updateBookingStatus = useBookingStore((state) => state.updateBookingStatus);
@@ -67,7 +69,7 @@ const AdminBookings = () => {
       <BookingFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} statusFilter={statusFilter} onStatusChange={setStatusFilter} />
 
       <div className="bg-white border border-border rounded-lg overflow-hidden shadow-sm">
-        <BookingTable bookings={filteredBookings} loading={loading} onConfirm={handleConfirm} onComplete={handleComplete} onOpenReject={openRejectModal} filteredCount={filteredBookings.length} totalCount={bookings.length} />
+        <BookingTable bookings={filteredBookings} loading={loading} onConfirm={handleConfirm} onComplete={handleComplete} onOpenReject={openRejectModal} onViewDetails={(id) => navigate(`/admin/bookings/${id}`)} filteredCount={filteredBookings.length} totalCount={bookings.length} />
       </div>
 
       <RejectBookingModal
