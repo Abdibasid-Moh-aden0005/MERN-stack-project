@@ -95,6 +95,12 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // WhatsApp Notification Status
+    whatsappStatus: {
+      sent: { type: Boolean, default: false },
+      sentAt: { type: Date, default: null },
+      error: { type: String, default: null },
+    },
   },
   // Timestamps
   { timestamps: true },

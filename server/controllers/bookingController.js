@@ -133,17 +133,32 @@ export const createBooking = async (req, res) => {
     await newBooking.populate("carId", "name brand model rentPerDay");
     await newBooking.populate("customerId", "firstName lastName email phone");
 
-    // Send background message to customer
-    const customerNumber = newBooking.customerId.phone;
-    const message = `Dear ${newBooking.customerId.firstName}, your booking for ${newBooking.carId.name} from ${newBooking.pickupDate.toDateString()} to ${newBooking.dropoffDate.toDateString()} has been created successfully. Total Rent: $${newBooking.totalRent}. Thank you for choosing our service!`;
-    // this function will be executed in the background and will not block the response to the client
-    sendBackgroundMessage(customerNumber, message);
-
+    // Send response immediately — no wait for WhatsApp
     res.status(201).json({
       success: true,
       message: "Booking created successfully",
       booking: newBooking,
     });
+
+    // Fire WhatsApp notification AFTER response (non-blocking)
+    const customerNumber = newBooking.customerId.phone;
+    const customerName = newBooking.customerId.firstName;
+    const carName = newBooking.carId.name;
+    const message = `Dear ${customerName}, your booking for ${carName} from ${newBooking.pickupDate.toDateString()} to ${newBooking.dropoffDate.toDateString()} has been created successfully. Total Rent: $${newBooking.totalRent}. Thank you for choosing our service!`;
+
+    sendBackgroundMessage(customerNumber, message)
+      .then(async (result) => {
+        await Booking.findByIdAndUpdate(newBooking._id, {
+          whatsappStatus: {
+            sent: result.success,
+            sentAt: result.success ? new Date() : null,
+            error: result.success ? null : result.message,
+          },
+        });
+      })
+      .catch((err) => {
+        console.error("WhatsApp background update failed:", err);
+      });
   } catch (error) {
     console.error("Create booking error:", error);
     res.status(500).json({
