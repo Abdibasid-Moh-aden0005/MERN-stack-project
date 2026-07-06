@@ -1,7 +1,7 @@
 // Booking Controller - Handles booking operations
-import Booking from '../models/Booking.js';
-import Car from '../models/Car.js';
-import User from '../models/User.js';
+import Booking from "../models/Booking.js";
+import Car from "../models/Car.js";
+import User from "../models/User.js";
 import {
   calculateTotalRent,
   checkCarAvailability,
@@ -9,8 +9,8 @@ import {
   calculateRefund,
   calculateSecurityDeposit,
   calculateTotalAmount,
-} from '../utils/bookingUtils.js';
-
+} from "../utils/bookingUtils.js";
+import { sendBackgroundMessage } from "../utils/MessageUtils.js";
 // Create new booking
 export const createBooking = async (req, res) => {
   try {
@@ -28,7 +28,7 @@ export const createBooking = async (req, res) => {
     if (!carId || !pickupDate || !numberOfDays) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required booking fields',
+        message: "Missing required booking fields",
       });
     }
 
@@ -41,7 +41,7 @@ export const createBooking = async (req, res) => {
     if (!dateValidation.isValid) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid booking dates',
+        message: "Invalid booking dates",
         errors: dateValidation.errors,
       });
     }
@@ -51,7 +51,7 @@ export const createBooking = async (req, res) => {
     if (!car) {
       return res.status(404).json({
         success: false,
-        message: 'Car not found',
+        message: "Car not found",
       });
     }
 
@@ -63,24 +63,28 @@ export const createBooking = async (req, res) => {
     }
 
     // Check car availability
-    const isAvailable = await checkCarAvailability(carId, pickupDate, dropoffDate.toISOString());
+    const isAvailable = await checkCarAvailability(
+      carId,
+      pickupDate,
+      dropoffDate.toISOString(),
+    );
     if (!isAvailable) {
       return res.status(400).json({
         success: false,
-        message: 'Car is not available for the selected dates',
+        message: "Car is not available for the selected dates",
       });
     }
 
     const reservedCar = await Car.findOneAndUpdate(
-      { _id: carId, status: 'Available' },
-      { status: 'Reserved' },
+      { _id: carId, status: "Available" },
+      { status: "Reserved" },
       { new: true },
     );
 
     if (!reservedCar) {
       return res.status(409).json({
         success: false,
-        message: 'Car is no longer available for booking',
+        message: "Car is no longer available for booking",
       });
     }
 
@@ -98,10 +102,12 @@ export const createBooking = async (req, res) => {
       rentPerDay: reservedCar.rentPerDay,
       totalRent,
       securityDeposit,
-      specialRequirements: specialRequirements ? specialRequirements.trim() : '',
-      paymentMethod: paymentMethod || 'Zaad',
-      status: 'Pending',
-      paymentStatus: 'Pending',
+      specialRequirements: specialRequirements
+        ? specialRequirements.trim()
+        : "",
+      paymentMethod: paymentMethod || "Zaad",
+      status: "Pending",
+      paymentStatus: "Pending",
     });
 
     // Save booking
@@ -110,13 +116,13 @@ export const createBooking = async (req, res) => {
     } catch (saveError) {
       const hasActiveBooking = await Booking.exists({
         carId,
-        status: { $in: ['Pending', 'Confirmed'] },
+        status: { $in: ["Pending", "Confirmed"] },
       });
 
       if (!hasActiveBooking) {
         await Car.updateOne(
-          { _id: carId, status: 'Reserved' },
-          { status: 'Available' },
+          { _id: carId, status: "Reserved" },
+          { status: "Available" },
         );
       }
 
@@ -124,19 +130,40 @@ export const createBooking = async (req, res) => {
     }
 
     // Populate car and customer details
-    await newBooking.populate('carId', 'name brand model rentPerDay');
-    await newBooking.populate('customerId', 'firstName lastName email phone');
+    await newBooking.populate("carId", "name brand model rentPerDay");
+    await newBooking.populate("customerId", "firstName lastName email phone");
 
+    // Send response immediately — no wait for WhatsApp
     res.status(201).json({
       success: true,
-      message: 'Booking created successfully',
+      message: "Booking created successfully",
       booking: newBooking,
     });
+
+    // Fire WhatsApp notification AFTER response (non-blocking)
+    const customerNumber = newBooking.customerId.phone;
+    const customerName = newBooking.customerId.firstName;
+    const carName = newBooking.carId.name;
+    const message = `Dear ${customerName}, your booking for ${carName} from ${newBooking.pickupDate.toDateString()} to ${newBooking.dropoffDate.toDateString()} has been created successfully. Total Rent: $${newBooking.totalRent}.use this Number to pay your rent(636130932).Thank you for choosing our service!`;
+
+    sendBackgroundMessage(customerNumber, message)
+      .then(async (result) => {
+        await Booking.findByIdAndUpdate(newBooking._id, {
+          whatsappStatus: {
+            sent: result.success,
+            sentAt: result.success ? new Date() : null,
+            error: result.success ? null : result.message,
+          },
+        });
+      })
+      .catch((err) => {
+        console.error("WhatsApp background update failed:", err);
+      });
   } catch (error) {
-    console.error('Create booking error:', error);
+    console.error("Create booking error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error creating booking',
+      message: "Error creating booking",
       error: error.message,
     });
   }
@@ -157,7 +184,10 @@ export const getMyBookings = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const bookings = await Booking.find(filter)
-      .populate('carId', 'name brand model rentPerDay fuelType seatingCapacity images')
+      .populate(
+        "carId",
+        "name brand model rentPerDay fuelType seatingCapacity images",
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -166,7 +196,7 @@ export const getMyBookings = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Bookings retrieved successfully',
+      message: "Bookings retrieved successfully",
       data: bookings,
       pagination: {
         total,
@@ -176,10 +206,10 @@ export const getMyBookings = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get bookings error:', error);
+    console.error("Get bookings error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving bookings',
+      message: "Error retrieving bookings",
       error: error.message,
     });
   }
@@ -192,35 +222,38 @@ export const getBookingDetails = async (req, res) => {
     const userId = req.userId;
 
     const booking = await Booking.findById(bookingId)
-      .populate('carId')
-      .populate('customerId', 'firstName lastName email phone address');
+      .populate("carId")
+      .populate("customerId", "firstName lastName email phone address");
 
     if (!booking) {
       return res.status(404).json({
         success: false,
-        message: 'Booking not found',
+        message: "Booking not found",
       });
     }
 
     // Check if user is the booking owner or admin
     const user = await User.findById(userId);
-    if (booking.customerId._id.toString() !== userId.toString() && user.role !== 'admin') {
+    if (
+      booking.customerId._id.toString() !== userId.toString() &&
+      user.role !== "admin"
+    ) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied',
+        message: "Access denied",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Booking details retrieved',
+      message: "Booking details retrieved",
       data: booking,
     });
   } catch (error) {
-    console.error('Get booking details error:', error);
+    console.error("Get booking details error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving booking details',
+      message: "Error retrieving booking details",
       error: error.message,
     });
   }
@@ -238,7 +271,7 @@ export const cancelBooking = async (req, res) => {
     if (!booking) {
       return res.status(404).json({
         success: false,
-        message: 'Booking not found',
+        message: "Booking not found",
       });
     }
 
@@ -246,12 +279,12 @@ export const cancelBooking = async (req, res) => {
     if (booking.customerId.toString() !== userId.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied',
+        message: "Access denied",
       });
     }
 
     // Check if booking can be cancelled
-    if (booking.status === 'Completed' || booking.status === 'Cancelled') {
+    if (booking.status === "Completed" || booking.status === "Cancelled") {
       return res.status(400).json({
         success: false,
         message: `Cannot cancel a ${booking.status.toLowerCase()} booking`,
@@ -259,27 +292,30 @@ export const cancelBooking = async (req, res) => {
     }
 
     // Calculate refund
-    const totalAmount = calculateTotalAmount(booking.totalRent, booking.securityDeposit);
+    const totalAmount = calculateTotalAmount(
+      booking.totalRent,
+      booking.securityDeposit,
+    );
     const refund = calculateRefund(totalAmount, booking.pickupDate);
 
     // Update booking
-    booking.status = 'Cancelled';
+    booking.status = "Cancelled";
     booking.cancelledAt = new Date();
-    booking.cancellationReason = cancellationReason || 'No reason provided';
+    booking.cancellationReason = cancellationReason || "No reason provided";
     booking.refundAmount = refund.amount;
-    booking.paymentStatus = 'Pending'; // Mark for refund processing
+    booking.paymentStatus = "Pending"; // Mark for refund processing
 
     await booking.save();
 
     const activeBookingExists = await Booking.exists({
       _id: { $ne: booking._id },
       carId: booking.carId,
-      status: { $in: ['Pending', 'Confirmed'] },
+      status: { $in: ["Pending", "Confirmed"] },
     });
     if (!activeBookingExists) {
       await Car.updateOne(
-        { _id: booking.carId, status: 'Reserved' },
-        { status: 'Available' },
+        { _id: booking.carId, status: "Reserved" },
+        { status: "Available" },
       );
     }
 
@@ -294,10 +330,10 @@ export const cancelBooking = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Cancel booking error:', error);
+    console.error("Cancel booking error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error cancelling booking',
+      message: "Error cancelling booking",
       error: error.message,
     });
   }
@@ -311,15 +347,15 @@ export const checkAvailability = async (req, res) => {
     if (!carId || !pickupDate || !dropoffDate) {
       return res.status(400).json({
         success: false,
-        message: 'Car ID, pickup date, and dropoff date are required',
+        message: "Car ID, pickup date, and dropoff date are required",
       });
     }
 
-    const car = await Car.findById(carId).select('status');
+    const car = await Car.findById(carId).select("status");
     if (!car) {
       return res.status(404).json({
         success: false,
-        message: 'Car not found',
+        message: "Car not found",
       });
     }
 
@@ -331,18 +367,24 @@ export const checkAvailability = async (req, res) => {
       });
     }
 
-    const isAvailable = await checkCarAvailability(carId, pickupDate, dropoffDate);
+    const isAvailable = await checkCarAvailability(
+      carId,
+      pickupDate,
+      dropoffDate,
+    );
 
     res.status(200).json({
       success: true,
       isAvailable,
-      message: isAvailable ? 'Car is available' : 'Car is not available for selected dates',
+      message: isAvailable
+        ? "Car is available"
+        : "Car is not available for selected dates",
     });
   } catch (error) {
-    console.error('Availability check error:', error);
+    console.error("Availability check error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error checking availability',
+      message: "Error checking availability",
       error: error.message,
     });
   }

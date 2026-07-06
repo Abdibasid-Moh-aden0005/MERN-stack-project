@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: [true, "Phone number is required"],
-      match: [/^\d{9}$/, "Please provide a valid 9-digit phone number"],
+      match: [/^\d{9,13}$/, "Please provide a valid 9-13 digit phone number"],
     },
     address: {
       type: String,

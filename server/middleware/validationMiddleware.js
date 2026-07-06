@@ -45,8 +45,8 @@ export const validateUserRegistration = (req, res, next) => {
   }
 
   // Phone validation
-  if (!phone || !/^\d{9}$/.test(phone)) {
-    errors.push("Phone number must be 9 digits");
+  if (!phone || !/^\d{9,13}$/.test(phone)) {
+    errors.push("Phone number must be 9-13 digits");
   }
 
   // Address validation

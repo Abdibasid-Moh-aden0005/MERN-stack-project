@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useCarStore from "../../store/zustand/cars";
 import useBookingStore from "../../store/zustand/Bookings";
+import useAuthStore from "../../store/zustand/auth";
 import {
   Users,
   Fuel,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import Button from "../common/Button";
 import { toast } from "react-toastify";
+import WhatsAppNotificationModal from "../customer/WhatsAppNotificationModal";
 
 const CarDetails = () => {
   const { id } = useParams();
@@ -27,6 +29,8 @@ const CarDetails = () => {
   const fetchCarDetails = useCarStore((state) => state.fetchCarDetails);
   const createNewBooking = useBookingStore((state) => state.createNewBooking);
   const bookingLoading = useBookingStore((state) => state.loading);
+  const user = useAuthStore((state) => state.user);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
 
   useEffect(() => {
     fetchCarDetails(id);
@@ -70,7 +74,7 @@ const CarDetails = () => {
     try {
       await createNewBooking({ carId: id, pickupDate, numberOfDays });
       toast.success("Booking created successfully");
-      navigate("/my-bookings");
+      setShowWhatsAppModal(true);
     } catch (err) {
       console.error("Booking failed:", err);
       toast.error(err.message || "Failed to create booking");
@@ -459,6 +463,14 @@ const CarDetails = () => {
           </div>
         </div>
       </div>
+
+      <WhatsAppNotificationModal
+        isOpen={showWhatsAppModal}
+        onClose={() => setShowWhatsAppModal(false)}
+        userName={user?.firstName || "Valued Customer"}
+        phoneNumber={user?.phone || ""}
+        onNavigate={() => { setShowWhatsAppModal(false); navigate("/my-bookings"); }}
+      />
     </div>
   );
 };
