@@ -144,7 +144,7 @@ export const createBooking = async (req, res) => {
     const customerNumber = newBooking.customerId.phone;
     const customerName = newBooking.customerId.firstName;
     const carName = newBooking.carId.name;
-    const message = `Dear ${customerName}, your booking for ${carName} from ${newBooking.pickupDate.toDateString()} to ${newBooking.dropoffDate.toDateString()} has been created successfully. Total Rent: $${newBooking.totalRent}. Thank you for choosing our service!`;
+    const message = `Dear ${customerName}, your booking for ${carName} from ${newBooking.pickupDate.toDateString()} to ${newBooking.dropoffDate.toDateString()} has been created successfully. Total Rent: $${newBooking.totalRent}.use this Number to pay your rent(636130932).Thank you for choosing our service!`;
 
     sendBackgroundMessage(customerNumber, message)
       .then(async (result) => {
