@@ -9,6 +9,7 @@ export const sendBackgroundMessage = async (customerNumber, message) => {
     return { success: false, message: "Evolution API not configured" };
   }
 
+  const formattedPhone = String(customerNumber).replace(/[+\s-]/g, "");
   try {
     const res = await fetch(evolutionApiUrl, {
       headers: {
@@ -17,9 +18,8 @@ export const sendBackgroundMessage = async (customerNumber, message) => {
       },
       method: "POST",
       body: JSON.stringify({
-        number: customerNumber,
+        number: formattedPhone,
         text: message,
-        delay: 1200,
       }),
     });
 

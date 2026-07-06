@@ -52,7 +52,7 @@ function AppContent() {
         isAuthenticated &&
         (user?.role === "admin" ? <AdminSidebar /> : <CustomerSidebar />)}
 
-      <main className="w-full overflow-y-auto ml-72">
+      <main className="w-full overflow-y-auto md:ml-72">
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
