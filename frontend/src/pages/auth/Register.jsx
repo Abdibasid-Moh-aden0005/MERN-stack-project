@@ -194,7 +194,7 @@ const Register = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="1234567890"
+                      placeholder="e.g 252634545999"
                       className="w-full bg-white border border-border rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-text-main placeholder:text-text-dim shadow-sm"
                       required
                     />
